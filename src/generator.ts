@@ -1,3 +1,5 @@
+import tf from "@tensorflow/tfjs-node"
+
 const counter = function* (max: number = -1) {
 	let x = 0
 	while (max < 0 || x < max) {
@@ -29,16 +31,42 @@ export const generator = function* (max: number = -1) {
 	}
 }
 
-/*
-export const batchGenerator = function* (lookBack: number, batchSize: number) {
+
+export const sampleGenerator = function* (samplesToCollect: number, stream: Iterable<IData>) {
 	let buffer: IData[] = []
-	const bufferCutter = (newValue: IData, [oldest, ...rest]: IData[]) => (rest.length < lookBack ? [oldest, ...rest, newValue] : [...rest, newValue])
-	for (const data of generator()) {
+	const bufferCutter = (newValue: IData, [oldest, ...rest]: IData[]) => (oldest && rest.length < (samplesToCollect - 1) ? [oldest, ...rest, newValue] : [...rest, newValue])
+	for (const data of stream) {
 		buffer = bufferCutter(data, buffer)
 		// Create a buffer, and assign a label to it.
-		if (buffer.length === lookBack) yield buffer
+		if (buffer.length === samplesToCollect) yield buffer
 	}
-} */
+}
+
+const features: (keyof IData)[] = ["delta", "event"]
+
+export const numFeatures = () => features.length
+
+export const batchGenerator = function*(lookBack: number, delay: number, batchSize: number, stream: Iterable<IData>) {
+	const iterator = sampleGenerator(lookBack + delay, stream)[Symbol.iterator]()
+	while (true) {
+		const sampleTensor = tf.buffer([batchSize, lookBack, numFeatures()])
+		const targetTensor = tf.buffer([batchSize, 1])
+
+		for (const n of counter(batchSize)) {
+			const {done, value: samples} = iterator.next()
+			if (done)
+				return
+			
+			// const actualSamples = delay > 0 ? samples.slice(0, lookBack) : samples
+			const featuresBlock = samples.filter((_, i) => i < lookBack).map(s => features.map(f => s[f]))
+			const {target} = samples[samples.length - 1]
+			featuresBlock.forEach((sample, sampleIdx) => sample.forEach((value, colIdx) => sampleTensor.set(value, n, sampleIdx, colIdx)))
+			targetTensor.set(target, n, 0)
+		}
+		// Verify that we are actually outputting the correct tensor size
+		yield {xs: sampleTensor.toTensor(), ys: targetTensor.toTensor()}
+	}
+}
 
 export const exportSomeCsv = function* (max: number) {
 	yield `SeqNr,x,target`

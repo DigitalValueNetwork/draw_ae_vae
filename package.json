@@ -7,7 +7,7 @@
   "author": "Jørgen Tvedt <tvedtorama@gmail.com>",
   "license": "MIT",
   "scripts": {
-      "seedGdprColumns": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts"
+      "train": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.0.0",
