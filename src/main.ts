@@ -1,6 +1,8 @@
 import meow from "meow"
 import tf from "@tensorflow/tfjs-node"
-import {exportSomeCsv} from "./generator.js"
+import {batchGenerator, exportSomeCsv, generator, numFeatures} from "./generator.js"
+import {trainModel} from "./trainModel.js"
+import {saveModel} from "./modelPersistence.js"
 
 /**
  * Build a simpleRNN-based model for the temperature-prediction problem.
@@ -17,13 +19,28 @@ export function buildSimpleRNNModel(inputShape: tf.Shape): tf.LayersModel {
 	return model
 }
 
+export const buildModel = ({numTimeSteps, numFeatures}: {numTimeSteps: number; numFeatures: number}) => {
+	const inputShape = [numTimeSteps, numFeatures]
+
+	const model = buildSimpleRNNModel(inputShape)
+
+	model.compile({loss: "meanAbsoluteError", optimizer: "rmsprop"})
+	model.summary()
+	return model
+}
+
 const cli = meow(
 	`
 Usage: 
 	$ yarn start [options]
 
 	Options
-		--outputDataset
+		--outputDataset Prints a CSV with the dataset
+		--lookBack Number of rows to include in input
+		--delay Number of rows into the future to predict
+		--logDir Tensorboard output
+		--saveModelPath Path to save to, if overridden to empty string - no saving should happen
+		--loadModelPath Path to model to load.
 `,
 	{
 		flags: {
@@ -35,6 +52,38 @@ Usage:
 				type: "number",
 				default: 500,
 			},
+			lookBack: {
+				type: "number",
+				default: 4,
+			},
+			delay: {
+				type: "number",
+				default: 1,
+			},
+			batchSize: {
+				type: "number",
+				default: 50,
+			},
+			logDir: {
+				type: "string",
+				default: "",
+			},
+			logUpdateFreq: {
+				type: "string",
+				default: "batch",
+				optionStrings: ["batch", "epoch"],
+			},
+			epochs: {
+				type: "number"
+			},
+			saveModelPath: {
+				type: "string",
+				default: "file:///tmp/rnn_test"
+			},
+			loadModelPath: {
+				type: "string",
+				default: "file:///tmp/rnn_test"
+			},
 		},
 		importMeta: import.meta,
 		allowUnknownFlags: false,
@@ -45,6 +94,30 @@ if (cli.flags.outputDataset) {
 	for (const d of exportSomeCsv(cli.flags.outputRows)) {
 		console.log(d)
 	}
+} else {
+	const {lookBack, delay} = cli.flags
+	const model = buildModel({numFeatures: numFeatures(), numTimeSteps: lookBack})
+	const coreGenerator = generator()
+
+	let callback: any[] = []
+	const {logDir, logUpdateFreq} = cli.flags
+	if (!!logDir) {
+		console.log(`Logging to tensorboard. ` + `Use the command below to bring up tensorboard server:\n` + `  tensorboard --logdir ${logDir}`)
+		callback.push(
+			tf.node.tensorBoard(logDir, {
+				updateFreq: <"batch" | "epoch">logUpdateFreq,
+			})
+		)
+	}
+
+	const {epochs, batchSize} = cli.flags
+	trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs ?? 50, callback).then(model => {
+		const {saveModelPath} = cli.flags
+		if (!!saveModelPath) {
+			console.log("Saving model...")
+			return saveModel(model, saveModelPath)
+		}
+	})
 }
 
 // const model = buildSimpleRNNModel()
