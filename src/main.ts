@@ -40,7 +40,7 @@ Usage:
 		--delay Number of rows into the future to predict
 		--logDir Tensorboard output
 		--saveModelPath Path to save to, if overridden to empty string - no saving should happen
-		--loadModelPath Path to model to load.
+		--loadModelPath Path to model to load, including file - file:///tmp/rnn_test/model.json.
 `,
 	{
 		flags: {
@@ -74,15 +74,15 @@ Usage:
 				optionStrings: ["batch", "epoch"],
 			},
 			epochs: {
-				type: "number"
+				type: "number",
 			},
 			saveModelPath: {
 				type: "string",
-				default: "file:///tmp/rnn_test"
+				default: "file:///tmp/rnn_test",
 			},
 			loadModelPath: {
 				type: "string",
-				default: "file:///tmp/rnn_test"
+				default: "",
 			},
 		},
 		importMeta: import.meta,
@@ -95,8 +95,8 @@ if (cli.flags.outputDataset) {
 		console.log(d)
 	}
 } else {
-	const {lookBack, delay} = cli.flags
-	const model = buildModel({numFeatures: numFeatures(), numTimeSteps: lookBack})
+	const {lookBack, delay, loadModelPath} = cli.flags
+	const model = !!loadModelPath ? tf.loadLayersModel(loadModelPath) : Promise.resolve(buildModel({numFeatures: numFeatures(), numTimeSteps: lookBack}))
 	const coreGenerator = generator()
 
 	let callback: any[] = []
@@ -111,13 +111,17 @@ if (cli.flags.outputDataset) {
 	}
 
 	const {epochs, batchSize} = cli.flags
-	trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs ?? 50, callback).then(model => {
-		const {saveModelPath} = cli.flags
-		if (!!saveModelPath) {
-			console.log("Saving model...")
-			return saveModel(model, saveModelPath)
-		}
-	})
+	model
+		.then(model => !loadModelPath ? trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs ?? 50, callback).then(async model => {
+			const {saveModelPath} = cli.flags
+			if (!!saveModelPath) {
+				console.log("Saving model...")
+				await saveModel(model, saveModelPath)
+				return model
+			}
+		}) : model).then(model => {
+			console.log(`Done with this model`)
+		})
 }
 
 // const model = buildSimpleRNNModel()
