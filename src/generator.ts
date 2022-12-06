@@ -1,6 +1,6 @@
 import tf from "@tensorflow/tfjs-node"
 
-const counter = function* (max: number = -1) {
+export const counter = function* (max: number = -1) {
 	let x = 0
 	while (max < 0 || x < max) {
 		yield x++

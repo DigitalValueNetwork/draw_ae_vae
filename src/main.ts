@@ -1,6 +1,6 @@
 import meow from "meow"
-import tf from "@tensorflow/tfjs-node"
-import {batchGenerator, exportSomeCsv, generator, numFeatures} from "./generator.js"
+import tf, {model} from "@tensorflow/tfjs-node"
+import {batchGenerator, exportSomeCsv, generator, numFeatures, counter} from "./generator.js"
 import {trainModel} from "./trainModel.js"
 import {saveModel} from "./modelPersistence.js"
 
@@ -19,15 +19,22 @@ export function buildSimpleRNNModel(inputShape: tf.Shape): tf.LayersModel {
 	return model
 }
 
+export const compileModel = (model: tf.LayersModel) => {
+	// Maybe the optimizer is not the best?
+	model.compile({loss: "meanAbsoluteError", optimizer: "rmsprop"})
+	return model
+}
+
 export const buildModel = ({numTimeSteps, numFeatures}: {numTimeSteps: number; numFeatures: number}) => {
 	const inputShape = [numTimeSteps, numFeatures]
 
-	const model = buildSimpleRNNModel(inputShape)
+	const model = compileModel(buildSimpleRNNModel(inputShape))
 
-	model.compile({loss: "meanAbsoluteError", optimizer: "rmsprop"})
 	model.summary()
 	return model
 }
+
+export const loadModel = async (path: string) => compileModel(await tf.loadLayersModel(path))
 
 const cli = meow(
 	`
@@ -96,7 +103,7 @@ if (cli.flags.outputDataset) {
 	}
 } else {
 	const {lookBack, delay, loadModelPath} = cli.flags
-	const model = !!loadModelPath ? tf.loadLayersModel(loadModelPath) : Promise.resolve(buildModel({numFeatures: numFeatures(), numTimeSteps: lookBack}))
+	const model = !!loadModelPath ? loadModel(loadModelPath) : Promise.resolve(buildModel({numFeatures: numFeatures(), numTimeSteps: lookBack}))
 	const coreGenerator = generator()
 
 	let callback: any[] = []
@@ -110,17 +117,45 @@ if (cli.flags.outputDataset) {
 		)
 	}
 
+	// Maybe we must normalize?
+	//    The output shows signs of learning when the curve crosses the center, in the big way.
+	// Maybe the optimizer is not cool?
+	// Output the inputs and outputs, and see what they look like
+
 	const {epochs, batchSize} = cli.flags
 	model
-		.then(model => !loadModelPath ? trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs ?? 50, callback).then(async model => {
-			const {saveModelPath} = cli.flags
-			if (!!saveModelPath) {
-				console.log("Saving model...")
-				await saveModel(model, saveModelPath)
-				return model
+		.then(model =>
+			!loadModelPath
+				? trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs ?? 50, callback).then(async model => {
+						const {saveModelPath} = cli.flags
+						if (!!saveModelPath) {
+							console.log("Saving model...")
+							await saveModel(model, saveModelPath)
+							return model
+						}
+				  })
+				: model
+		)
+		.then(async model => {
+			// const dataSet = tf.data.generator(() => batchGenerator(lookBack, delay, batchSize, coreGenerator))
+			let iterations = 1
+			for (const item of batchGenerator(lookBack, delay, batchSize, coreGenerator)) {
+				const result = model?.predict(item.xs) as tf.Tensor
+				const arr = [...result.dataSync()]
+				const arr2 = [...item.ys.dataSync()]
+				for (const i of counter(arr.length)) {
+					console.log(`${arr2[i]}, ${arr[i]}`)
+				}
+				if (iterations-- <= 0)
+					break
 			}
-		}) : model).then(model => {
-			console.log(`Done with this model`)
+			/*			const data = await model?.evaluateDataset(
+				dataSet,
+				{batches: 20, verbose: 0}
+			) */
+			//const dataSync = data.
+
+			// console.log(`Done with this model`)
 		})
 }
 
