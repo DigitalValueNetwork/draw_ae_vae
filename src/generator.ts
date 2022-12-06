@@ -68,12 +68,6 @@ export const batchGenerator = function*(lookBack: number, delay: number, batchSi
 	}
 }
 
- 
-export const batchGeneratorInputOnly = function*(lookBack: number, batchSize: number, stream: Iterable<IData>) {
-	for (const batch of batchGenerator(lookBack, 0, batchSize, stream)) {
-		yield batch.xs
-	}
-}
 
 export const exportSomeCsv = function* (max: number) {
 	yield `SeqNr,x,target`
