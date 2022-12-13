@@ -48,8 +48,23 @@ const features: (keyof IData)[] = ["delta", "event"]
 
 export const numFeatures = () => features.length
 
+export const skipNonlinearsAndRandom = function*(iterator: Generator<IData[], void>, maxSkip: number) {
+	let skip = -1
+	while (true) {
+		const {done, value: samples} = iterator.next()
+		if (done || !samples)
+			return
+		if (skip-- > 0)
+			continue
+		const invalid = samples[samples.length -1].delta < samples[0].delta
+		skip = Math.floor(Math.random() * maxSkip)
+		if (!invalid)
+			yield samples
+	}
+}
+
 export const batchGenerator = function* (lookBack: number, delay: number, batchSize: number, stream: Iterable<IData>) {
-	const iterator = sampleGenerator(lookBack + delay, stream)[Symbol.iterator]()
+	const iterator = skipNonlinearsAndRandom(sampleGenerator(lookBack + delay, stream)[Symbol.iterator](), cycle - lookBack)
 	while (true) {
 		const sampleTensor = tf.buffer([batchSize, lookBack, numFeatures()])
 		const targetTensor = tf.buffer([batchSize, 1])

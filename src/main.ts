@@ -63,7 +63,7 @@ Usage:
 			},
 			lookBack: {
 				type: "number",
-				default: 15,
+				default: 6,
 			},
 			delay: {
 				type: "number",
