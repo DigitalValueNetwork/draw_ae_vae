@@ -64,8 +64,9 @@ export const skipNonlinearsAndRandom = function*(iterator: Generator<IData[], vo
 	}
 }
 
-export const batchGenerator = function* (lookBack: number, delay: number, batchSize: number, stream: Iterable<IData>) {
-	const iterator = sampleGenerator(lookBack + delay, stream)[Symbol.iterator]() // skipNonlinearsAndRandom(, cycle - lookBack)
+export const batchGenerator = function* (lookBack: number, delay: number, batchSize: number, stream: Iterable<IData>, randomishSkippify: boolean = true) {
+	const rawIterator = sampleGenerator(lookBack + delay, stream)[Symbol.iterator]()
+	const iterator = randomishSkippify ? skipNonlinearsAndRandom(rawIterator, cycle - lookBack) : rawIterator
 	while (true) {
 		const sampleTensor = tf.buffer([batchSize, lookBack, numFeatures()])
 		const targetTensor = tf.buffer([batchSize, 1])

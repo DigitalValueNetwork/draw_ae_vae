@@ -1,5 +1,5 @@
 import meow from "meow"
-import tf, {model} from "@tensorflow/tfjs-node"
+import tf from "@tensorflow/tfjs-node"
 import {batchGenerator, exportSomeCsv, generator, numFeatures, counter} from "./generator.js"
 import {trainModel} from "./trainModel.js"
 import {saveModel} from "./modelPersistence.js"
@@ -142,6 +142,8 @@ if (cli.flags.outputDataset) {
 	//     Reversing is most likely a problem for the RNN as the order of things is somewhat important.
 	//     Instead - try to avoid having a delta-reset in the datasets.  Skip past it.
 	// SOLUTION:  Bug in data generation - the output was not related to the input, just seemed to be.  This was evident, but overlooked, in the spreadsheet.
+	// Next up: Export the inputs and the outputs - see if it learns the outliers.
+	// Next up: Watch train progress in the tensorflow inspector thing
 
 	const {epochs, batchSize} = cli.flags
 	model
@@ -159,25 +161,25 @@ if (cli.flags.outputDataset) {
 		)
 		.then(async model => {
 			// const dataSet = tf.data.generator(() => batchGenerator(lookBack, delay, batchSize, coreGenerator))
-			let iterations = 1
-			for (const item of batchGenerator(lookBack, delay, batchSize, coreGenerator)) {
+			let iterations = 5
+
+			console.log(`delta, event, expected, predicted`)
+			for (const item of batchGenerator(lookBack, delay, batchSize, coreGenerator, false)) {
 				const result = model?.predict(item.xs) as tf.Tensor
+				const inputs = <number[][][]>item.xs.arraySync()
 				const predicted = [...result.dataSync()]
 				const expected = [...item.ys.dataSync()]
 				// Print the generated data vs the expected data
 				for (const i of counter(predicted.length)) {
-					console.log(`${expected[i]}, ${predicted[i]}`)
+					const inputBatch = inputs[i]
+					const lastRow = inputBatch[inputBatch.length - 1]
+					const [delta, event] = lastRow
+					
+					console.log(`${delta}, ${event}, ${expected[i]}, ${predicted[i]}`)
 				}
 				if (iterations-- <= 0)
 					break
 			}
-			/*			const data = await model?.evaluateDataset(
-				dataSet,
-				{batches: 20, verbose: 0}
-			) */
-			//const dataSync = data.
-
-			// console.log(`Done with this model`)
 		})
 }
 
