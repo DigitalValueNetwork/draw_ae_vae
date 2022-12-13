@@ -69,8 +69,8 @@ export const batchGenerator = function* (lookBack: number, delay: number, batchS
 }
 
 export const exportSomeCsv = function* (max: number) {
-	yield `SeqNr,x,target`
-	for (const {i, delta, target} of generator(max)) {
-		yield `${i}, ${delta}, ${target}`
+	yield `SeqNr,x,event,target`
+	for (const {i, delta, target, event} of generator(max)) {
+		yield `${i}, ${delta}, ${event}, ${target}`
 	}
 }
