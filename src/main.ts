@@ -141,10 +141,11 @@ if (cli.flags.outputDataset) {
 			let iterations = 1
 			for (const item of batchGenerator(lookBack, delay, batchSize, coreGenerator)) {
 				const result = model?.predict(item.xs) as tf.Tensor
-				const arr = [...result.dataSync()]
-				const arr2 = [...item.ys.dataSync()]
-				for (const i of counter(arr.length)) {
-					console.log(`${arr2[i]}, ${arr[i]}`)
+				const predicted = [...result.dataSync()]
+				const expected = [...item.ys.dataSync()]
+				// Print the generated data vs the expected data
+				for (const i of counter(predicted.length)) {
+					console.log(`${expected[i]}, ${predicted[i]}`)
 				}
 				if (iterations-- <= 0)
 					break
