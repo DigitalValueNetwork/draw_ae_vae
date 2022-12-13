@@ -17,7 +17,7 @@ const baseLevel = 0.0  // to shift "expected" output up and down.  This affects 
 export const generator = function* (max: number = -1) {
 	let lastEvent = -3
 	for (const i of counter(max)) {
-		const impact = i === lastEvent + 2 ? componentScale : 0
+		const impact = i === lastEvent + 2 ? 1.5 * componentScale : 0
 		if (impact !== 0) {
 		} else {
 			if (i > lastEvent + 5 && 0.01 > Math.random()) {
