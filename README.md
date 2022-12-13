@@ -19,3 +19,13 @@ rnn_test % node --inspect --loader ts-node/esm.mjs --experimental-json-modules s
 ```
 
 (This will go straight to the prediction output)
+
+
+## Lessons learned
+
+* A huge issue in exploring AI is the efforts in developing the framework, and particularly the bugs
+* The bug with deviating phases on the input and output caused the data to cancel itself out, leading to an average value being returned.
+  * Don't think the signal spikes was present either, they were most likely covered in noise.
+ 
+
+### From the data
