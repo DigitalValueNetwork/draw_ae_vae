@@ -7,11 +7,12 @@ export const counter = function* (max: number = -1) {
 	}
 }
 
-const cycle = 30
+const cycle = 60
 
 type IData = {i: number; delta: number; target: number; event: 1 | -0}
 
 const componentScale = 0.3
+const baseLevel = 0.0  // to shift "expected" output up and down.  This affects the trained values.
 
 export const generator = function* (max: number = -1) {
 	let lastEvent = -3
@@ -28,7 +29,7 @@ export const generator = function* (max: number = -1) {
 			i,
 			delta: -1 + (2 * (i % cycle)) / cycle,
 			event: lastEvent === i ? 1 : -1,
-			target: componentScale * (Math.sin((i * Math.PI) / cycle) + Math.sin((3 * i * Math.PI) / cycle)) + impact,
+			target: baseLevel + componentScale * (Math.sin((i * Math.PI) / cycle) + Math.sin((3 * i * Math.PI) / cycle)) + impact,
 		}
 	}
 }
@@ -64,7 +65,8 @@ export const batchGenerator = function* (lookBack: number, delay: number, batchS
 			targetTensor.set(target, n, 0)
 		}
 		// Verify that we are actually outputting the correct tensor size
-		yield {xs: sampleTensor.toTensor(), ys: targetTensor.toTensor()}
+		const results = {xs: sampleTensor.toTensor(), ys: targetTensor.toTensor()}
+		yield results
 	}
 }
 
