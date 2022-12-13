@@ -22,6 +22,7 @@ export function buildSimpleRNNModel(inputShape: tf.Shape): tf.LayersModel {
 
 export const compileModel = (model: tf.LayersModel) => {
 	// Maybe the optimizer is not the best?  Tried adam. I guess it can't be the main reason for the troubles.
+	// What effect does ...Squared... have compared to ...Absolute...?  Squared actually gives lower error values [-1, 1], but bigger diffs still gives a higher error.
 	model.compile({loss: "meanSquaredError", optimizer: "rmsprop"})
 	return model
 }
@@ -62,7 +63,7 @@ Usage:
 			},
 			lookBack: {
 				type: "number",
-				default: 4,
+				default: 15,
 			},
 			delay: {
 				type: "number",
@@ -120,8 +121,26 @@ if (cli.flags.outputDataset) {
 
 	// Maybe we must normalize?
 	//    The output shows signs of learning when the curve crosses the center, in the big way.
+	//    Result: No sign of an improvement
 	// Maybe the optimizer is not cool?
+	//    Result: Same result with different optimizers
+	// Maybe the loss function is not cool, since the average loss might look OK here?
+	//    Result: Different loss functions yields different results - and some errors.  Did use meanAbsoluteError for a while, instead of meanSquareError.   This did not affect the results
+	//    Perhaps we are using the loss function in a weird way.  Should use tf.losses.meanSquared...
 	// Output the inputs and outputs, and see what they look like
+	//    Result: tried to look at the loss function outputs, and they look as expected
+	// Shifting the dataset did not help, but it moved the estimations to the new mean.
+	// Adjusting the number of layers, and nodes did not help
+	// It would be interesting to test the logic without the rnn, but unfortunately, that would require rewriting all the input and testing logic
+	//     As it requires only a single input
+	// Maybe the RNN has trouble with the non-continuos input? That it breaks on the shifts from 1 to 0/-1
+	//     Could try to reverse the delta when it reaches 1, instead of restarting it.
+	// Try:  Skip the sinus, try with just the signal (event)  - any response?  Maybe a linear link to the 'delta'.
+	// Would be nice to try with some non-linear layer before the RNN, but then we would have to deal with the dataformat again
+	// It should be possible to debug this stuff, see what information is going into the layers (But most likely, the RNN does not support the data?)
+	// Try: Reverse the "angle" argument, "delta" to avoid shifts in the data that has no effect on the output.
+	//     Reversing is most likely a problem for the RNN as the order of things is somewhat important.
+	//     Instead - try to avoid having a delta-reset in the datasets.  Skip past it.
 
 	const {epochs, batchSize} = cli.flags
 	model
