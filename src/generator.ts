@@ -25,11 +25,12 @@ export const generator = function* (max: number = -1) {
 				lastEvent = i
 			}
 		}
+		const delta = -1 + (2 * (i % cycle)) / cycle
 		yield <IData>{
 			i,
-			delta: -1 + (2 * (i % cycle)) / cycle,
+			delta,
 			event: lastEvent === i ? 1 : -1,
-			target: baseLevel + componentScale * (Math.sin((i * Math.PI) / cycle) + Math.sin((3 * i * Math.PI) / cycle)) + impact,
+			target: baseLevel + componentScale * (Math.sin((delta + 1) * Math.PI) + Math.sin(3 * (delta + 1) * Math.PI)) + impact,
 		}
 	}
 }
@@ -64,7 +65,7 @@ export const skipNonlinearsAndRandom = function*(iterator: Generator<IData[], vo
 }
 
 export const batchGenerator = function* (lookBack: number, delay: number, batchSize: number, stream: Iterable<IData>) {
-	const iterator = skipNonlinearsAndRandom(sampleGenerator(lookBack + delay, stream)[Symbol.iterator](), cycle - lookBack)
+	const iterator = sampleGenerator(lookBack + delay, stream)[Symbol.iterator]() // skipNonlinearsAndRandom(, cycle - lookBack)
 	while (true) {
 		const sampleTensor = tf.buffer([batchSize, lookBack, numFeatures()])
 		const targetTensor = tf.buffer([batchSize, 1])

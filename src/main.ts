@@ -141,6 +141,7 @@ if (cli.flags.outputDataset) {
 	// Try: Reverse the "angle" argument, "delta" to avoid shifts in the data that has no effect on the output.
 	//     Reversing is most likely a problem for the RNN as the order of things is somewhat important.
 	//     Instead - try to avoid having a delta-reset in the datasets.  Skip past it.
+	// SOLUTION:  Bug in data generation - the output was not related to the input, just seemed to be.  This was evident, but overlooked, in the spreadsheet.
 
 	const {epochs, batchSize} = cli.flags
 	model
