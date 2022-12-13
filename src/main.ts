@@ -142,8 +142,9 @@ if (cli.flags.outputDataset) {
 	//     Reversing is most likely a problem for the RNN as the order of things is somewhat important.
 	//     Instead - try to avoid having a delta-reset in the datasets.  Skip past it.
 	// SOLUTION:  Bug in data generation - the output was not related to the input, just seemed to be.  This was evident, but overlooked, in the spreadsheet.
-	// Next up: Export the inputs and the outputs - see if it learns the outliers.
-	// Next up: Watch train progress in the tensorflow inspector thing
+	// Next up: OK: Export the inputs and the outputs - see if it learns the outliers.
+	// Next up: Watch train progress in the tensorflow inspector thing.  Tensorboard is not available without python and tensorflow
+	// Next up: Experiment with meta parameters.
 
 	const {epochs, batchSize} = cli.flags
 	model
