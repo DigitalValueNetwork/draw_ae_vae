@@ -20,8 +20,8 @@ export function buildSimpleRNNModel(inputShape: tf.Shape): tf.LayersModel {
 }
 
 export const compileModel = (model: tf.LayersModel) => {
-	// Maybe the optimizer is not the best?
-	model.compile({loss: "meanAbsoluteError", optimizer: "rmsprop"})
+	// Maybe the optimizer is not the best?  Tried adam. I guess it can't be the main reason for the troubles.
+	model.compile({loss: "meanSquaredError", optimizer: "rmsprop"})
 	return model
 }
 
