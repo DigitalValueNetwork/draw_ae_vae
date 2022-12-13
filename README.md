@@ -29,3 +29,8 @@ rnn_test % node --inspect --loader ts-node/esm.mjs --experimental-json-modules s
  
 
 ### From the data
+
+<img width="1553" alt="image" src="https://user-images.githubusercontent.com/18142837/207315190-14923c09-4de1-46c4-ae4f-3c2d9388f343.png">
+
+* The breaking point, when delta resets is not tranined - and creates some noise until it's past the lookback.
+* After an event - there is significant noise for the lookback period.  Seems to hit partially on the output spike, but not always.
