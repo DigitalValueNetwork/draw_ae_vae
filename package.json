@@ -7,11 +7,12 @@
   "author": "Jørgen Tvedt <tvedtorama@gmail.com>",
   "license": "MIT",
   "scripts": {
-      "train": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts",
-      "outputDataset": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts --outputDataset"
+    "train": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts",
+    "outputDataset": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts --outputDataset"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.0.0",
+    "@tensorflow/tfjs-node-gpu": "^4.1.0",
     "meow": "^11.0.0"
   },
   "devDependencies": {

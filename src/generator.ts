@@ -1,4 +1,4 @@
-import tf from "@tensorflow/tfjs-node"
+import tf from "@tensorflow/tfjs-node-gpu"
 
 export const counter = function* (max: number = -1) {
 	let x = 0

@@ -1,5 +1,5 @@
 import meow from "meow"
-import tf from "@tensorflow/tfjs-node"
+import tf from "@tensorflow/tfjs-node-gpu"
 import {batchGenerator, exportSomeCsv, generator, numFeatures, counter} from "./generator.js"
 import {trainModel} from "./trainModel.js"
 import {saveModel} from "./modelPersistence.js"

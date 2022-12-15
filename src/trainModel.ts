@@ -1,4 +1,4 @@
-import tf from "@tensorflow/tfjs-node"
+import tf from "@tensorflow/tfjs-node-gpu"
 
 /**
  * Train a model on the Jena weather data.
