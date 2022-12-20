@@ -13,7 +13,7 @@ import {saveModel} from "./modelPersistence.js"
  */
 export function buildSimpleRNNModel(inputShape: tf.Shape): tf.LayersModel {
 	const model = tf.sequential()
-	const rnnUnits = 5
+	const rnnUnits = 32
 	model.add(tf.layers.lstm({units: rnnUnits, inputShape, activation: "tanh"}))
 //	model.add(tf.layers.dense({units: 50, activation: "tanh"}))
 	model.add(tf.layers.dense({units: 1, activation: "tanh"}))
