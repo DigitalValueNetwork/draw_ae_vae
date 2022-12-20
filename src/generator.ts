@@ -13,14 +13,15 @@ type IData = {i: number; delta: number; target: number; event: 1 | -0}
 
 const componentScale = 0.3
 const baseLevel = 0.0  // to shift "expected" output up and down.  This affects the trained values.
+const spikeEventDelay = 3
 
 export const generator = function* (max: number = -1) {
-	let lastEvent = -3
+	let lastEvent = -(spikeEventDelay + 1)
 	for (const i of counter(max)) {
-		const impact = i === lastEvent + 2 ? 1.5 * componentScale : 0
+		const impact = i === lastEvent + spikeEventDelay ? 1.5 * componentScale : 0
 		if (impact !== 0) {
 		} else {
-			if (i > lastEvent + 5 && 0.01 > Math.random()) {
+			if (i > lastEvent + spikeEventDelay * 2 && 0.01 > Math.random()) {
 				// If we want the probability to increase with time since last event: ((i - lastEvent) / 3000)
 				lastEvent = i
 			}
