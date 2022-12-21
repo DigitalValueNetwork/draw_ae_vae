@@ -36,7 +36,11 @@ rnn_test % node --inspect --loader ts-node/esm.mjs --experimental-json-modules s
 * After an event - there is significant noise for the lookback period.  Seems to hit partially on the output spike, but not always.
 * Switching to GRU enabled a better response to the signal, when it was 3 steps away from the event.  It seemed to match the sinus curve better as well, but could just be more training.
 * LSTM yielded more or less the same results, but with less matching sinus.
-  * Increasing the number of rnn-nodes yielded near perfect result.  LSTM rocks!
+  * Increasing the number of rnn-nodes/units yielded near perfect result.  LSTM rocks!
+
+With LSTM and more units in the RNN layer, very nice results surfaced:
+![image](https://user-images.githubusercontent.com/18142837/208864270-5b32feb0-47ad-40db-bb38-74d2ad8d7aa9.png)
+_Note: The model has not seen the transitions - so estimation there is random/undefined._
 
 ## Resources
 
