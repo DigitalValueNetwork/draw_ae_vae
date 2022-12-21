@@ -1,6 +1,7 @@
 # rnn_test
 Try to have an RNN emulate a simple sinus-function with random delayed outliers.
 
+RNN, with sub category LSTM, are a technology to find patterns in sequences of data.  This could be time series, audio or text.  It's the precursor to the transformer technology used for todays cutting edge text generation (ChatGPT, etc).  In this project, I wanted to explore this in a very simple way.   The result was a double sinus curve, where a random signal creates a delayed spike.  After struggling with a stupid bug that efficiently removed the correlation between the input and output - it turned out to be a successful demonstration.
 
 ## Train and save
 
@@ -40,7 +41,8 @@ rnn_test % node --inspect --loader ts-node/esm.mjs --experimental-json-modules s
 
 With LSTM and more units in the RNN layer, very nice results surfaced:
 ![image](https://user-images.githubusercontent.com/18142837/208864270-5b32feb0-47ad-40db-bb38-74d2ad8d7aa9.png)
-_Note: The model has not seen the transitions - so estimation there is random/undefined._
+_Note: The model has not seen the "delta transitions" - so estimation there is random/undefined._
+_Note: The spike in the output is set to happen 3 frames after the input "event"_
 
 ## Resources
 
