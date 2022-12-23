@@ -44,7 +44,7 @@ With LSTM and more units in the RNN layer, very nice results surfaced:
 _Note: The model has not seen the "delta transitions" - so estimation there is random/undefined._
 _Note: The spike in the output is set to happen 3 frames after the input "event"_
 
-Learning rate
+## Learning rate
 Using the tensorboard `yarn run train --logDir /tmp/tensorboard`:
 
 ![image](https://user-images.githubusercontent.com/18142837/209329314-d1484926-e2ab-451c-8a1a-1d6e12aeae89.png)
