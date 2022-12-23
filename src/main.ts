@@ -84,6 +84,7 @@ Usage:
 			},
 			epochs: {
 				type: "number",
+				default: 9,
 			},
 			saveModelPath: {
 				type: "string",
@@ -150,7 +151,7 @@ if (cli.flags.outputDataset) {
 	model
 		.then(model =>
 			!loadModelPath
-				? trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs ?? 50, callback).then(async model => {
+				? trainModel(model, batchGenerator(lookBack, delay, batchSize, coreGenerator), epochs, callback).then(async model => {
 						const {saveModelPath} = cli.flags
 						if (!!saveModelPath) {
 							console.log("Saving model...")
