@@ -1,6 +1,8 @@
 output/dataset.csv
 output/results.csv
 
+dataset
+
 # Logs
 logs
 *.log
