@@ -2,7 +2,7 @@ import tf from "@tensorflow/tfjs-node"
 
 export const imageDim = [28, 28, 1] as const
 /** Width of the encoder output */
-const latentSpaceLength = 3
+export const latentDim = 3
 
 type ILayerData = tf.layers.Layer
 
@@ -20,7 +20,7 @@ export const setupEncoder = () => {
 		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
 		// tf.layers.maxPool2d({poolSize: 2}),  Is this any use?  Need maxPool before flatten?
 		tf.layers.flatten({}),
-		tf.layers.dense({units: latentSpaceLength, activation: "relu", name: "encoder_output"}),
+		tf.layers.dense({units: latentDim, activation: "relu", name: "encoder_output"}),
 	]
 
 	const encoder = wrapInModel(encoderLayers[0] as any, chainSequentialLayers(encoderLayers))
@@ -29,7 +29,7 @@ export const setupEncoder = () => {
 
 export const setupDecoder = () => {
 	const decoderLayers: ILayerData[] = [
-		<any>tf.input({shape: [latentSpaceLength], name: "decoder_input"}),
+		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
 		tf.layers.dense({units: 11 * 11 * 16}),
 		tf.layers.reshape({targetShape: [11, 11, 16]}),
 		tf.layers.conv2dTranspose({filters: 16, kernelSize: 3}), // Output 13x13
