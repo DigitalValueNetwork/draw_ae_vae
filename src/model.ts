@@ -1,7 +1,8 @@
 import tf from "@tensorflow/tfjs-node"
-import {wrap} from "module"
 
 export const imageDim = [28, 28, 1] as const
+/** Width of the encoder output */
+const latentSpaceLength = 3
 
 type ILayerData = tf.layers.Layer
 
@@ -11,14 +12,7 @@ const chainSequentialLayers = (layers: ILayerData[], seed?: ILayerData) => (seed
 
 const wrapInModel = (inputs: tf.SymbolicTensor, outputs: tf.layers.Layer) => tf.model({inputs, outputs: <any>outputs})
 
-const latentSpaceLength = 3
-
 export const setupEncoder = () => {
-	// Start with a simple convolution, from the example.  Suddenly - I can't find the example.
-	// Then try with max pooling and up-sampling
-
-	// Create sequentialLayers and parallelLayers function that `apply` according to name
-
 	const encoderLayers: ILayerData[] = [
 		<any>tf.input({shape: <any>imageDim, name: "encoder_input"}),
 		tf.layers.conv2d({filters: 16, kernelSize: 3, strides: 1, activation: "relu"}),
@@ -33,8 +27,7 @@ export const setupEncoder = () => {
 	return encoder
 }
 
-export const setupDecoder = () =>  {
-
+export const setupDecoder = () => {
 	const decoderLayers: ILayerData[] = [
 		<any>tf.input({shape: [latentSpaceLength], name: "decoder_input"}),
 		tf.layers.dense({units: 11 * 11 * 16}),
@@ -56,7 +49,7 @@ export const setupAutoEncoder = (encoder: tf.LayersModel, decoder: tf.LayersMode
 	const decoderOutput = decoder.apply(<any>encoded)
 	const v = tf.model({
 		inputs: inputs,
-		outputs: [<any>decoderOutput, <any>encoderOutput], // Both the final decoder output, and the encoder's output - the latent space - is outputs of the model. 
+		outputs: [<any>decoderOutput, <any>encoderOutput], // Both the final decoder output, and the encoder's output - the latent space - is outputs of the model.
 		name: "autoEncoderModel",
 	})
 
@@ -72,7 +65,7 @@ export const setupAutoEncoder = (encoder: tf.LayersModel, decoder: tf.LayersMode
  */
 export function autoEncoderLoss(inputs: tf.Tensor, outputs: tf.Tensor[]) {
 	return tf.tidy(() => {
-		const originalDim = inputs.shape[1] ?? -1  // NB:  Should probably be the product of dimensions
+		const originalDim = inputs.shape[1] ?? -1 // NB:  Should probably be the product of dimensions
 		const decoderOutput = outputs[0] // outputs[1] is the latent vector
 		/*	  No VAE just yet
 const zMean = outputs[1];
