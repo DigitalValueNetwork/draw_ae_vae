@@ -3,6 +3,7 @@ import {loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImages
 import {renderImageForTerminalPreview} from "./image/terminalImage.js"
 import {train} from "./train.js"
 import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
+import {saveModel} from "./modelPersistence.js"
 
 const cli = meow(
 	`
@@ -50,11 +51,11 @@ Usage:
 			},
 			epochs: {
 				type: "number",
-				default: 9,
+				default: 10,
 			},
 			saveModelPath: {
 				type: "string",
-				default: "file:///tmp/rnn_test",
+				default: "file:///tmp/draw_ae_vae",
 			},
 			loadModelPath: {
 				type: "string",
@@ -71,13 +72,20 @@ if (cli.flags.outputDataset) {
 } else {
 	//	const imageProps: IImgProps = { imageHeight: }
 
-	loadImages(mnistImagesFilePath).then(async images => {
-		console.log(await renderImageForTerminalPreview(images[5], mnistImageProps))
-		// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
-		// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
+	loadImages(mnistImagesFilePath)
+		.then(async images => {
+			console.log(await renderImageForTerminalPreview(images[5], mnistImageProps))
+			// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
+			// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
 
-		train(imageChunkToFlat(imageChunks(images, cli.flags.batchSize)), async tensor => console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, mnistImageProps)))
-	})
+			const model = await train(imageChunkToFlat(imageChunks(images, cli.flags.batchSize)), cli.flags.epochs, async tensor =>
+				console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, mnistImageProps))
+			)
+			await saveModel(model, cli.flags.saveModelPath)
+		})
+		.catch(err => {
+			console.error("Terrible error", err)
+		})
 }
 
 // const model = buildSimpleRNNModel()

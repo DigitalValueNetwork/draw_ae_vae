@@ -4,6 +4,7 @@
 		"lstm",
 		"MNIST",
 		"Nonlinears",
+		"radash",
 		"randomish",
 		"relu",
 		"rmsprop",
