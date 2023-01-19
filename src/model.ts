@@ -3,7 +3,7 @@ import {ITensorflow, LayersModel, SymbolicTensor, Tensor} from "./tensorflowLoad
 
 export const imageDim = [28, 28, 1] as const
 /** Width of the encoder output */
-export const latentDim = 3
+export const latentDim = 16
 
 type ILayers = ITensorflow["layers"]
 type ILayer = ILayers["Layer"]
