@@ -1,10 +1,8 @@
 import meow from "meow"
-import tf from "@tensorflow/tfjs-node-gpu"
-import {batchGenerator, generator, numFeatures, counter} from "./generator.js"
-import { loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImagesFilePath } from "./mnist-loading/data.js"
-import { renderImageForTerminalPreview } from "./image/terminalImage.js"
-import { train } from "./train.js"
-import { imageChunks, imageChunkToFlat } from "./image/imageChunks.js"
+import {loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImagesFilePath} from "./mnist-loading/data.js"
+import {renderImageForTerminalPreview} from "./image/terminalImage.js"
+import {train} from "./train.js"
+import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
 
 const cli = meow(
 	`
@@ -71,15 +69,14 @@ Usage:
 if (cli.flags.outputDataset) {
 	console.log("not implemented")
 } else {
-
-//	const imageProps: IImgProps = { imageHeight: }
+	//	const imageProps: IImgProps = { imageHeight: }
 
 	loadImages(mnistImagesFilePath).then(async images => {
 		console.log(await renderImageForTerminalPreview(images[5], mnistImageProps))
 		// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
 		// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
 
-		train(imageChunkToFlat(imageChunks(images, cli.flags.batchSize)))
+		train(imageChunkToFlat(imageChunks(images, cli.flags.batchSize)), async tensor => console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, mnistImageProps)))
 	})
 }
 
