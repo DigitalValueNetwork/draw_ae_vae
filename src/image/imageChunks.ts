@@ -1,4 +1,3 @@
-import tf from "@tensorflow/tfjs-node"
 import { bufferCount, from, map, Observable } from "rxjs"
 
 export const imageChunks = (images: Float32Array[], batchSize: number) => {
