@@ -1,3 +1,4 @@
+// Huge issues with tensorflow typing when introducing tfjs-node-gpu
 import {Tensor, SymbolicTensor, LayersModel} from "@tensorflow/tfjs-node"
 // import {Layer}  from "@tensorflow/tfjs-layers/dist/engine"
 
