@@ -17,12 +17,11 @@
 
 // This module is copied from tfjs-examples
 
-import path from 'path';
-import fs from 'fs';
-import http from 'http';
-import zlib from 'zlib';
-import mkdirp from 'mkdirp';
-
+import path from "path"
+import fs from "fs"
+import http from "http"
+import zlib from "zlib"
+import mkdirp from "mkdirp"
 
 /**
  * Get a file by downloading it if necessary.
@@ -31,21 +30,21 @@ import mkdirp from 'mkdirp';
  * @param {string} destPath Destination file path on local filesystem.
  */
 async function maybeDownload(sourceURL: string, destPath: string) {
-  return new Promise<void>(async (resolve, reject) => {
-    if (!fs.existsSync(destPath) || fs.lstatSync(destPath).size === 0) {
-      await mkdirp(path.dirname(destPath));
-      const localZipFile = fs.createWriteStream(destPath);
-      http.get(sourceURL, response => {
-        response.pipe(localZipFile);
-        localZipFile.on('finish', () => {
-          localZipFile.close(() => resolve());
-        });
-        localZipFile.on('error', err => reject(err));
-      });
-    } else {
-      return resolve();
-    }
-  });
+	return new Promise<void>(async (resolve, reject) => {
+		if (!fs.existsSync(destPath) || fs.lstatSync(destPath).size === 0) {
+			await mkdirp(path.dirname(destPath))
+			const localZipFile = fs.createWriteStream(destPath)
+			http.get(sourceURL, response => {
+				response.pipe(localZipFile)
+				localZipFile.on("finish", () => {
+					localZipFile.close(() => resolve())
+				})
+				localZipFile.on("error", err => reject(err))
+			})
+		} else {
+			return resolve()
+		}
+	})
 }
 
 /**
@@ -55,42 +54,41 @@ async function maybeDownload(sourceURL: string, destPath: string) {
  * @param {string} destPath destination path.
  */
 async function extract(sourcePath: string, destPath: string) {
-  return new Promise<void>((resolve, reject) => {
-    const fileContents = fs.createReadStream(sourcePath);
-    const writeStream = fs.createWriteStream(destPath);
-    const unzip = zlib.createGunzip();
-    fileContents.pipe(unzip).pipe(writeStream).on('finish', (err: any) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+	return new Promise<void>((resolve, reject) => {
+		const fileContents = fs.createReadStream(sourcePath)
+		const writeStream = fs.createWriteStream(destPath)
+		const unzip = zlib.createGunzip()
+		fileContents
+			.pipe(unzip)
+			.pipe(writeStream)
+			.on("finish", (err: any) => {
+				if (err) {
+					reject(err)
+				} else {
+					resolve()
+				}
+			})
+	})
 }
 
-const DATA_URL =
-    'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz';
-const ZIP_PATH =
-    path.resolve(path.join('./dataset', 'train-images-idx3-ubyte.gz'));
-const UNZIP_PATH =
-    path.resolve(path.join('./dataset', 'train-images-idx3-ubyte'));
+const DATA_URL = "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz"
+const ZIP_PATH = path.resolve(path.join("./dataset", "train-images-idx3-ubyte.gz"))
+const UNZIP_PATH = path.resolve(path.join("./dataset", "train-images-idx3-ubyte"))
 
-(async function run() {
-  try {
-    console.log(
-        `Downloading data file from ${DATA_URL} and saving to ${ZIP_PATH}`);
-    await maybeDownload(DATA_URL, ZIP_PATH);
-  } catch (e) {
-    console.log('Error downloading file');
-    console.log(e);
-  }
+;(async function run() {
+	try {
+		console.log(`Downloading data file from ${DATA_URL} and saving to ${ZIP_PATH}`)
+		await maybeDownload(DATA_URL, ZIP_PATH)
+	} catch (e) {
+		console.log("Error downloading file")
+		console.log(e)
+	}
 
-  try {
-    console.log('Unzipping data file');
-    await extract(ZIP_PATH, UNZIP_PATH);
-  } catch (e) {
-    console.log('Error unzipping file');
-    console.log(e);
-  }
-}())
+	try {
+		console.log("Unzipping data file")
+		await extract(ZIP_PATH, UNZIP_PATH)
+	} catch (e) {
+		console.log("Error unzipping file")
+		console.log(e)
+	}
+})()
