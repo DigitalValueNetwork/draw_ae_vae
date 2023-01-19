@@ -1,9 +1,11 @@
 {
 	"cSpell.words": [
+		"conv",
 		"lstm",
 		"MNIST",
 		"Nonlinears",
 		"randomish",
+		"relu",
 		"rmsprop",
 		"Skippify",
 		"tfjs"
