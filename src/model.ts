@@ -56,11 +56,10 @@ export const setupAutoEncoder = (encoder: tf.LayersModel, decoder: tf.LayersMode
 	const decoderOutput = decoder.apply(<any>encoded)
 	const v = tf.model({
 		inputs: inputs,
-		outputs: [<any>decoderOutput, <any>encoderOutput],
-		name: "vae_mlp",
+		outputs: [<any>decoderOutput, <any>encoderOutput], // Both the final decoder output, and the encoder's output - the latent space - is outputs of the model. 
+		name: "autoEncoderModel",
 	})
 
-	// console.log('VAE Summary');
 	v.summary()
 	return v
 }
@@ -69,18 +68,18 @@ export const setupAutoEncoder = (encoder: tf.LayersModel, decoder: tf.LayersMode
  * The custom loss function for auto encoder.  Soon to be extended to vae.
  *
  * @param {tf.tensor} inputs the encoder inputs a batched image tensor
- * @param {tf.tensor} output the single output tensor
+ * @param {tf.tensor} output the encoder and decoder outputs
  */
-export function autoEncoderLoss(inputs: tf.Tensor, output: tf.Tensor) {
+export function autoEncoderLoss(inputs: tf.Tensor, outputs: tf.Tensor[]) {
 	return tf.tidy(() => {
 		const originalDim = inputs.shape[1] ?? -1  // NB:  Should probably be the product of dimensions
-		const decoderOutput = output // outputs[0];
+		const decoderOutput = outputs[0] // outputs[1] is the latent vector
 		/*	  No VAE just yet
 const zMean = outputs[1];
 	  const zLogVar = outputs[2]; */
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
-		// tihs term is to make the model outputs match the input data.
+		// this term is to make the model outputs match the input data.
 		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim)
 
 		// binaryCrossEntropy can be used as an alternative loss function
