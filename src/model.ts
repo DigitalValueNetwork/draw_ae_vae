@@ -1,18 +1,23 @@
-import tf from "@tensorflow/tfjs-node"
+// import tf from "@tensorflow/tfjs-node"
+import {ITensorflow, LayersModel, SymbolicTensor, Tensor} from "./tensorflowLoader"
 
 export const imageDim = [28, 28, 1] as const
 /** Width of the encoder output */
 export const latentDim = 3
 
-type ILayerData = tf.layers.Layer
+type ILayers = ITensorflow["layers"]
+type ILayer = ILayers["Layer"]
+type ILayerData = ILayer
 
-const applyIt = (x: tf.layers.Layer, y: tf.layers.Layer): tf.layers.Layer => y.apply(x as any) as any
+// const tfTyping: ITensorflow = <any>null
+
+const applyIt = (x: ILayer, y: ILayer): ILayer => (y as any).apply(x as any) as any
 
 const chainSequentialLayers = (layers: ILayerData[], seed?: ILayerData) => (seed ? layers.reduce(applyIt, seed) : layers.reduce(applyIt))
 
-const wrapInModel = (inputs: tf.SymbolicTensor, outputs: tf.layers.Layer) => tf.model({inputs, outputs: <any>outputs})
+const wrapInModel = (inputs: SymbolicTensor, outputs: ILayer, tf: ITensorflow) => tf.model({inputs, outputs: <any>outputs})
 
-export const setupEncoder = () => {
+export const setupEncoder = (tf: ITensorflow) => {
 	const encoderLayers: ILayerData[] = [
 		<any>tf.input({shape: <any>imageDim, name: "encoder_input"}),
 		tf.layers.conv2d({filters: 16, kernelSize: 3, strides: 1, activation: "relu"}),
@@ -23,11 +28,11 @@ export const setupEncoder = () => {
 		tf.layers.dense({units: latentDim, activation: "relu", name: "encoder_output"}),
 	]
 
-	const encoder = wrapInModel(encoderLayers[0] as any, chainSequentialLayers(encoderLayers))
+	const encoder = wrapInModel(encoderLayers[0] as any, chainSequentialLayers(encoderLayers), tf)
 	return encoder
 }
 
-export const setupDecoder = () => {
+export const setupDecoder = (tf: ITensorflow) => {
 	const decoderLayers: ILayerData[] = [
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
 		tf.layers.dense({units: 11 * 11 * 16}),
@@ -36,12 +41,12 @@ export const setupDecoder = () => {
 		tf.layers.upSampling2d({}), // Output 26x26
 		tf.layers.conv2dTranspose({filters: 1, kernelSize: 3}),
 	]
-	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers))
+	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), tf)
 
 	return decoder
 }
 
-export const setupAutoEncoder = (encoder: tf.LayersModel, decoder: tf.LayersModel) => {
+export const setupAutoEncoder = (encoder: LayersModel, decoder: LayersModel, tf: ITensorflow) => {
 	const inputs = encoder.inputs
 	// const encoderOutputs = <any[]>encoder.apply(inputs)  // What does this mean?
 	const encoderOutput = encoder.apply(inputs) // ? Is this a hack to get the outputs?  The last layer of the encoder contains the outputs.  Here: there is ATW just a single output
@@ -63,7 +68,7 @@ export const setupAutoEncoder = (encoder: tf.LayersModel, decoder: tf.LayersMode
  * @param {tf.tensor} inputs the encoder inputs a batched image tensor
  * @param {tf.tensor} output the encoder and decoder outputs
  */
-export function autoEncoderLoss(inputs: tf.Tensor, outputs: tf.Tensor[]) {
+export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorflow) {
 	return tf.tidy(() => {
 		const originalDim = inputs.shape[1] ?? -1 // NB:  Should probably be the product of dimensions
 		const decoderOutput = outputs[0] // outputs[1] is the latent vector

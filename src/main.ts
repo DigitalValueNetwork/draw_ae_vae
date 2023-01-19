@@ -1,9 +1,12 @@
 import meow from "meow"
+// import tfMain from "@tensorflow/tfjs-node"
+// import tfGpu from "@tensorflow/tfjs-node-gpu"
 import {loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImagesFilePath} from "./mnist-loading/data.js"
 import {renderImageForTerminalPreview} from "./image/terminalImage.js"
 import {train} from "./train.js"
 import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
-import {saveModel} from "./modelPersistence.js"
+import {saveModel} from "./persistence/saveModel.js"
+import { loadTfjsGpu, loadTfjsNode } from "./tensorflowLoader.js"
 
 const cli = meow(
 	`
@@ -20,6 +23,10 @@ Usage:
 `,
 	{
 		flags: {
+			useGpu: {
+				type: "boolean",
+				default: false,
+			},
 			outputDataset: {
 				type: "boolean",
 				default: false,
@@ -55,7 +62,7 @@ Usage:
 			},
 			saveModelPath: {
 				type: "string",
-				default: "file:///tmp/draw_ae_vae",
+				default: "/tmp/draw_ae_vae",
 			},
 			loadModelPath: {
 				type: "string",
@@ -72,20 +79,29 @@ if (cli.flags.outputDataset) {
 } else {
 	//	const imageProps: IImgProps = { imageHeight: }
 
-	loadImages(mnistImagesFilePath)
-		.then(async images => {
-			console.log(await renderImageForTerminalPreview(images[5], mnistImageProps))
-			// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
-			// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
+	const tensorflowPromise = cli.flags.useGpu ? loadTfjsGpu() : loadTfjsNode()
 
-			const model = await train(imageChunkToFlat(imageChunks(images, cli.flags.batchSize)), cli.flags.epochs, async tensor =>
-				console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, mnistImageProps))
-			)
-			await saveModel(model, cli.flags.saveModelPath)
-		})
-		.catch(err => {
-			console.error("Terrible error", err)
-		})
+	tensorflowPromise.then(tensorflow =>
+		loadImages(mnistImagesFilePath, tensorflow.util as any)
+			.then(async images => {
+				console.log(await renderImageForTerminalPreview(images[5], mnistImageProps))
+				// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
+				// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
+
+				const model = await train(
+					imageChunkToFlat(imageChunks(images, cli.flags.batchSize)),
+					cli.flags.epochs,
+					async tensor => {
+						console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, mnistImageProps))
+					},
+					tensorflow as any
+				)
+				await saveModel(model, cli.flags.saveModelPath)
+			})
+			.catch(err => {
+				console.error("Terrible error", err)
+			})
+	)
 }
 
 // const model = buildSimpleRNNModel()

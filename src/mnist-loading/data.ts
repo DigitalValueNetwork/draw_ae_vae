@@ -17,7 +17,7 @@
 
 // This code is copied from tfjs-examples, converted to basic ts and some code deleted 
 
-import tf from '@tensorflow/tfjs';
+import {util as tfUtil} from "@tensorflow/tfjs-node"
 import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
@@ -63,7 +63,7 @@ function loadHeaderValues(buffer: Buffer, headerLength: number): number[] {
  *
  * @returns {Promise<Float32Array[]>} an array of images represented as typed arrays.
  */
-async function loadImages(filepath: string): Promise<Float32Array[]> {
+async function loadImages(filepath: string, {shuffle}: typeof tfUtil): Promise<Float32Array[]> {
   if (!fs.existsSync(filepath)) {
     console.log(`Data File: ${filepath} does not exist.
       Please see the README for instructions on how to download it`);
@@ -93,33 +93,10 @@ async function loadImages(filepath: string): Promise<Float32Array[]> {
   }
 
   assert.equal(images.length, headerValues[1]);
-  tf.util.shuffle(images);
+  shuffle(images);
   return images;
 }
 
-/**
- * Take an array of images (represented as typedarrays) and return
- * a tensor representing them.
- *
- * @param {Float32Array[]} imagesData
- *
- * @returns {tf.Tensor3D} tensor of input images
- */
-/* WRONGLY NAMED FUNCTION, should have been flattenToTensor: function batchImages(imagesData: Float32Array[]) {
-  const numImages = imagesData.length;
-  const flat = [];
-  for (let i = 0; i < numImages; i++) {
-    const image = imagesData[i];
-    for (let j = 0; j < image.length; j++) {
-      flat.push(image[j]);
-    }
-  }
-
-  const batchedTensor =
-      tf.tensor3d(flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT], 'float32');
-
-  return batchedTensor;
-} */
 
 
 const imageProps: IImgProps = {
