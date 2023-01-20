@@ -9,6 +9,7 @@
 		"relu",
 		"rmsprop",
 		"Skippify",
-		"tfjs"
+		"tfjs",
+		"tfvis"
 	]
 }
