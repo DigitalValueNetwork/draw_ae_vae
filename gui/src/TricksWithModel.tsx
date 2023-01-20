@@ -1,7 +1,7 @@
 import React, {ChangeEvent, FormEvent, useState} from "react"
 
 import * as tf from "@tensorflow/tfjs"
-import { GenerateImage } from "./GenerateImage"
+import {GenerateImage} from "./GenerateImage"
 
 export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const [textArray, setTextArray] = useState<string>("")
@@ -25,13 +25,14 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const handleSubmit = (e: FormEvent) => {
 		const arr = JSON.parse(textArray)
 		console.log(arr)
-		setVisualArray(arr)
-		
+		// This timeout seems to be needed to have the visuals re-render
+		setTimeout(() => setVisualArray(arr), 10)
+
 		e.preventDefault()
 	}
 
 	return (
-		<p>
+		<div style={{display: "flex", flexDirection: "column"}}>
 			Model is now loaded!
 			<form onSubmit={handleSubmit}>
 				<div style={{display: "flex", flexDirection: "column"}}>
@@ -39,10 +40,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 					{validArray && <input type="submit" value="Try it!" />}
 				</div>
 			</form>
-			{
-				visualArray && visualArray.length && 
-					<GenerateImage latentSpace={visualArray} model={model}/>
-			}
-		</p>
+			{!!(visualArray && visualArray.length) && <GenerateImage latentSpace={visualArray} model={model} />}
+		</div>
 	)
 }
