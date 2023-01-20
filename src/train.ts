@@ -1,4 +1,4 @@
-import { Scalar } from "@tensorflow/tfjs-node"
+import {Scalar} from "@tensorflow/tfjs-node"
 import {range} from "radash"
 import {filter, map, Observable, lastValueFrom} from "rxjs"
 import {generateImage} from "./generate/imageGenerator.js"
