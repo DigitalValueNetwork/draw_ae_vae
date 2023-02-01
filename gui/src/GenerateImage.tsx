@@ -15,21 +15,20 @@ const decodeLatentSpaceTensor = (decoder: tf.LayersModel, inputTensor: tf.Tensor
 	})
 }
 
-export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; latentSpace: number[]}) => {
-
+export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; latentSpace: tf.Tensor}) => {
 	const [imageTensor, setImageTensor] = useState<tf.Tensor>()
 
 	useEffect(() => {
-		const tensor = decodeLatentSpaceTensor(model, tf.tensor(latentSpace, [1, latentDim]))
+		const tensor = decodeLatentSpaceTensor(model, latentSpace)
 		setImageTensor(tensor)
-	}, [latentSpace,  model])
+	}, [latentSpace, model])
 
 	const canvasRef = useRef(null)
 
 	useEffect(() => {
 		if (imageTensor && canvasRef.current) {
 			const myTensor = imageTensor.unstack()[0].resizeBilinear([IMAGE_HEIGHT * 2, IMAGE_WIDTH * 2])
-			tf.browser.toPixels(myTensor as any, canvasRef.current)	
+			tf.browser.toPixels(myTensor as any, canvasRef.current)
 		}
 	}, [imageTensor])
 
