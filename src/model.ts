@@ -29,9 +29,9 @@ export const setupEncoder = (tf: ITensorflow) => {
 
 	const encoderLayers: ILayerData[] = [
 		<any>tf.input({shape: <any>imageDim, name: "encoder_input"}),
-		tf.layers.conv2d({filters: 16, kernelSize: 3, strides: 1, activation: "relu"}),
-		tf.layers.maxPool2d({poolSize: 2}),
 		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
+		tf.layers.maxPool2d({poolSize: 2}),
+		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
 		// tf.layers.maxPool2d({poolSize: 2}),  Is this any use?  Need maxPool before flatten?
 		tf.layers.flatten({}),
 		[tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_mean"}), tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_log_var"})],
@@ -49,9 +49,9 @@ export const setupEncoder = (tf: ITensorflow) => {
 export const setupDecoder = (tf: ITensorflow) => {
 	const decoderLayers: ILayerData[] = [
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({units: 11 * 11 * 16}),
-		tf.layers.reshape({targetShape: [11, 11, 16]}),
-		tf.layers.conv2dTranspose({filters: 16, kernelSize: 3}), // Output: 13x13
+		tf.layers.dense({units: 11 * 11 * 13, activation: "relu"}),
+		tf.layers.reshape({targetShape: [11, 11, 13]}),
+		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 13x13
 		tf.layers.upSampling2d({}), // Output: 26x26  - We don't have to do this, could just widen the convolution with wide filters
 		tf.layers.conv2dTranspose({filters: 1, kernelSize: 3}), // Output: 28x28
 	]
