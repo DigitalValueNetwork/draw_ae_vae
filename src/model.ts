@@ -84,7 +84,7 @@ export const setupAutoEncoder = (encoder: LayersModel, decoder: LayersModel, tf:
  */
 export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorflow) {
 	return tf.tidy(() => {
-		const originalDim = inputs.shape[1] ?? -1 // NB:  Should probably be the product of dimensions
+		const originalDim = inputs.shape[1] ?? -1
 		// Outputs: [decoderOutput, zMean, zLogDev, latent] - see above
 		const decoderOutput = outputs[0] // outputs[1] is the latent vector
 		const zMean = outputs[1]
@@ -92,7 +92,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
-		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim)
+		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim * originalDim)
 
 		// binaryCrossEntropy can be used as an alternative loss function
 		// const reconstructionLoss =
@@ -103,6 +103,6 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 		// distributed around the center of the latent space.
 		let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp()).sum(-1).mul(-0.5)
 
-		return reconstructionLoss.mean().add(klLoss).mean()
+		return reconstructionLoss.add(klLoss).mean()
 	})
 }
