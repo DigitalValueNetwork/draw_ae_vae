@@ -5,7 +5,7 @@ import * as tf from "@tensorflow/tfjs"
 const IMAGE_HEIGHT = 28
 const IMAGE_WIDTH = 28
 const IMAGE_CHANNELS = 1
-export const latentDim = 16
+export const latentDim = 3
 
 const decodeLatentSpaceTensor = (decoder: tf.LayersModel, inputTensor: tf.Tensor) => {
 	return tf.tidy(() => {

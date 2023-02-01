@@ -1,9 +1,10 @@
 // import tf from "@tensorflow/tfjs-node"
 import {ITensorflow, LayersModel, SymbolicTensor, Tensor} from "./tensorflowLoader"
+import {createZLayerClass} from "./ZLayer.js"
 
 export const imageDim = [28, 28, 1] as const
 /** Width of the encoder output */
-export const latentDim = 16
+export const latentDim = 3
 
 type ILayers = ITensorflow["layers"]
 type ILayer = ILayers["Layer"]
@@ -11,13 +12,21 @@ type ILayerData = ILayer
 
 // const tfTyping: ITensorflow = <any>null
 
-const applyIt = (x: ILayer, y: ILayer): ILayer => (y as any).apply(x as any) as any
+const applyIt = (x: ILayer, y: ILayer | ILayer[]): ILayer =>
+	[
+		[...(Array.isArray(y) ? (y as any) : [y])].map(y => {
+			const l = y.apply(x as any) as any
+			return l
+		}),
+	].map(x => (x.length === 1 ? x[0] : x))[0]
 
-const chainSequentialLayers = (layers: ILayerData[], seed?: ILayerData) => (seed ? layers.reduce(applyIt, seed) : layers.reduce(applyIt))
+const chainSequentialLayers = (layers: (ILayerData | ILayerData[])[], seed?: ILayerData) => (seed ? layers.reduce(applyIt, seed) : layers.reduce(applyIt as any))
 
-const wrapInModel = (inputs: SymbolicTensor, outputs: ILayer, tf: ITensorflow) => tf.model({inputs, outputs: <any>outputs})
+const wrapInModel = (inputs: SymbolicTensor, outputs: ILayer | ILayer[], name: string, tf: ITensorflow) => tf.model({inputs, outputs: <any>outputs, name})
 
 export const setupEncoder = (tf: ITensorflow) => {
+	const ZLayer = createZLayerClass(tf)
+
 	const encoderLayers: ILayerData[] = [
 		<any>tf.input({shape: <any>imageDim, name: "encoder_input"}),
 		tf.layers.conv2d({filters: 16, kernelSize: 3, strides: 1, activation: "relu"}),
@@ -25,10 +34,15 @@ export const setupEncoder = (tf: ITensorflow) => {
 		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
 		// tf.layers.maxPool2d({poolSize: 2}),  Is this any use?  Need maxPool before flatten?
 		tf.layers.flatten({}),
-		tf.layers.dense({units: latentDim, activation: "relu", name: "encoder_output"}),
+		[tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_mean"}), tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_log_var"})],
+		// new ZLayer({name: "z-layer", outputShape: [latentDim]})
 	]
 
-	const encoder = wrapInModel(encoderLayers[0] as any, chainSequentialLayers(encoderLayers), tf)
+	const [zMean, zLogVar] = chainSequentialLayers(encoderLayers) as ILayer[]
+	// const [zMean, zLogVar] = (sequence as any).sourceLayer.inboundNodes[0].inboundLayers[0]
+	const z = chainSequentialLayers([[zMean, zLogVar], new ZLayer({name: "z-layer", outputShape: [latentDim]})] as any[])
+
+	const encoder = wrapInModel(encoderLayers[0] as any, [zMean, zLogVar, z as any], "encoder", tf)
 	return encoder
 }
 
@@ -41,7 +55,7 @@ export const setupDecoder = (tf: ITensorflow) => {
 		tf.layers.upSampling2d({}), // Output: 26x26  - We don't have to do this, could just widen the convolution with wide filters
 		tf.layers.conv2dTranspose({filters: 1, kernelSize: 3}), // Output: 28x28
 	]
-	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), tf)
+	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), "decoder", tf)
 
 	return decoder
 }
@@ -49,12 +63,12 @@ export const setupDecoder = (tf: ITensorflow) => {
 export const setupAutoEncoder = (encoder: LayersModel, decoder: LayersModel, tf: ITensorflow) => {
 	const inputs = encoder.inputs
 	// const encoderOutputs = <any[]>encoder.apply(inputs)  // What does this mean?
-	const encoderOutput = encoder.apply(inputs) // ? Is this a hack to get the outputs?  The last layer of the encoder contains the outputs.  Here: there is ATW just a single output
-	const encoded = encoderOutput // encoderOutputs[2]
+	const encoderOutputs = encoder.apply(inputs) as any[] // ? Is this a hack to get the outputs?  The last layer of the encoder contains the outputs.  Here: there is ATW just a single output
+	const encoded = encoderOutputs[2]
 	const decoderOutput = decoder.apply(<any>encoded)
 	const v = tf.model({
 		inputs: inputs,
-		outputs: [<any>decoderOutput, <any>encoderOutput], // Both the final decoder output, and the encoder's output - the latent space - is outputs of the model.
+		outputs: [<any>decoderOutput, ...encoderOutputs], // Both the final decoder output, and the encoder's output - the latent space - is outputs of the model.
 		name: "autoEncoderModel",
 	})
 
@@ -71,10 +85,10 @@ export const setupAutoEncoder = (encoder: LayersModel, decoder: LayersModel, tf:
 export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorflow) {
 	return tf.tidy(() => {
 		const originalDim = inputs.shape[1] ?? -1 // NB:  Should probably be the product of dimensions
+		// Outputs: [decoderOutput, zMean, zLogDev, latent] - see above
 		const decoderOutput = outputs[0] // outputs[1] is the latent vector
-		/*	  No VAE just yet
-const zMean = outputs[1];
-	  const zLogVar = outputs[2]; */
+		const zMean = outputs[1]
+		const zLogVar = outputs[2]
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
@@ -82,16 +96,13 @@ const zMean = outputs[1];
 
 		// binaryCrossEntropy can be used as an alternative loss function
 		// const reconstructionLoss =
-		//  tf.metrics.binaryCrossentropy(inputs, decoderOutput).mul(originalDim);
+		//  tf.metrics.binaryCrossEntropy(inputs, decoderOutput).mul(originalDim);
 
 		// Next we compute the KL-divergence between zLogVar and zMean, minimizing
 		// this term aims to make the distribution of latent variable more normally
 		// distributed around the center of the latent space.
-		/*	  
-		No klLoss so far
-		let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp());
-	  klLoss = klLoss.sum(-1).mul(-0.5); */
+		let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp()).sum(-1).mul(-0.5)
 
-		return reconstructionLoss.mean() // .add(klLoss).mean();
+		return reconstructionLoss.mean().add(klLoss).mean()
 	})
 }
