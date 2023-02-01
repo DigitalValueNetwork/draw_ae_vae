@@ -2,7 +2,7 @@ import React, {ChangeEvent, FormEvent, useRef, useState} from "react"
 
 import * as tf from "@tensorflow/tfjs"
 import {GenerateImage, latentDim} from "./GenerateImage"
-import { range } from "radash"
+import {range} from "radash"
 
 const comeUpWithDefault = () => 
 	JSON.stringify([...range(1, 5)].map(() => [...range(1, latentDim)].map(() => Math.round(Math.random() * 1000) / 1000)))
@@ -38,7 +38,11 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 
 	const requestRef = useRef()
 
-	const animate = (start: number, stop: number, current = 0) => () => {
+
+	React.useEffect(() => {
+		const animate =
+		(start: number, stop: number, current = 0) =>
+		() => {
 		// Take the array to animate on here
 		// Store new progresses based array indices, but with decimal values - 
 
@@ -50,15 +54,13 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 		requestRef.current = requestAnimationFrame(animate(start, stop, newCurrent)) as any
 	}
 
-	React.useEffect(() => {
 		if (fullArray && fullArray.length && Array.isArray(fullArray[0])) {
-
 			requestRef.current = requestAnimationFrame(animate(0, fullArray.length)) as any
 			return () => cancelAnimationFrame(requestRef.current as any)	
 		}
 	}, [fullArray])
 
-	const visualArray = fullArray && fullArray.length ? (Array.isArray(fullArray[0]) ? fullArray[Math.floor(animationIndex)] : fullArray) as number[] : null
+	const visualArray = fullArray && fullArray.length ? ((Array.isArray(fullArray[0]) ? fullArray[Math.floor(animationIndex)] : fullArray) as number[]) : null
 
 	return (
 		<div style={{display: "flex", flexDirection: "column"}}>

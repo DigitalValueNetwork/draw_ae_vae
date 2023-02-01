@@ -1,4 +1,4 @@
-import React, {ChangeEvent, FormEvent, useEffect, useRef, useState} from "react"
+import React, {useEffect, useRef, useState} from "react"
 
 import * as tf from "@tensorflow/tfjs"
 
@@ -22,7 +22,7 @@ export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; late
 	useEffect(() => {
 		const tensor = decodeLatentSpaceTensor(model, tf.tensor(latentSpace, [1, latentDim]))
 		setImageTensor(tensor)
-	}, [latentSpace])
+	}, [latentSpace,  model])
 
 	const canvasRef = useRef(null)
 
@@ -31,7 +31,7 @@ export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; late
 			const myTensor = imageTensor.unstack()[0].resizeBilinear([IMAGE_HEIGHT * 2, IMAGE_WIDTH * 2])
 			tf.browser.toPixels(myTensor as any, canvasRef.current)	
 		}
-	}, [canvasRef.current, imageTensor])
+	}, [imageTensor])
 
 	return (
 		<div>
