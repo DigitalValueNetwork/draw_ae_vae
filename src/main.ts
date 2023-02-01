@@ -14,7 +14,7 @@ Usage:
 	$ yarn start [options]
 
 	Options
-		--useGPU use the GPU (if Cuda GPU is present)
+		--useGpu use the GPU (if Cuda GPU is present)
 		[--outputDataset Prints a CSV with the dataset]
 		--lookBack Number of rows to include in input
 		--delay Number of rows into the future to predict
@@ -24,8 +24,9 @@ Usage:
 `,
 	{
 		flags: {
-			useGPU: {
-				type: "boolean",
+			/* had to use lowercase for some reason */
+			useGpu: {
+				type: "boolean",				
 				default: false,
 			},
 			outputDataset: {
@@ -80,7 +81,7 @@ if (cli.flags.outputDataset) {
 } else {
 	//	const imageProps: IImgProps = { imageHeight: }
 
-	const tensorflowPromise = cli.flags.useGPU ? loadTfjsGpu() : loadTfjsNode()
+	const tensorflowPromise = cli.flags.useGpu ? loadTfjsGpu() : loadTfjsNode()
 
 	tensorflowPromise.then(tensorflow =>
 		loadImages(mnistImagesFilePath, tensorflow.util as any)
