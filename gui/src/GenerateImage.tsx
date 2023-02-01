@@ -5,6 +5,7 @@ import * as tf from "@tensorflow/tfjs"
 const IMAGE_HEIGHT = 28
 const IMAGE_WIDTH = 28
 const IMAGE_CHANNELS = 1
+export const latentDim = 16
 
 const decodeLatentSpaceTensor = (decoder: tf.LayersModel, inputTensor: tf.Tensor) => {
 	return tf.tidy(() => {
@@ -19,7 +20,7 @@ export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; late
 	const [imageTensor, setImageTensor] = useState<tf.Tensor>()
 
 	useEffect(() => {
-		const tensor = decodeLatentSpaceTensor(model, tf.tensor(latentSpace, [1, 16]))
+		const tensor = decodeLatentSpaceTensor(model, tf.tensor(latentSpace, [1, latentDim]))
 		setImageTensor(tensor)
 	}, [latentSpace])
 
