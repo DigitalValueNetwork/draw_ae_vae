@@ -37,9 +37,9 @@ export const setupDecoder = (tf: ITensorflow) => {
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
 		tf.layers.dense({units: 11 * 11 * 16}),
 		tf.layers.reshape({targetShape: [11, 11, 16]}),
-		tf.layers.conv2dTranspose({filters: 16, kernelSize: 3}), // Output 13x13
-		tf.layers.upSampling2d({}), // Output 26x26
-		tf.layers.conv2dTranspose({filters: 1, kernelSize: 3}),
+		tf.layers.conv2dTranspose({filters: 16, kernelSize: 3}), // Output: 13x13
+		tf.layers.upSampling2d({}), // Output: 26x26  - We don't have to do this, could just widen the convolution with wide filters
+		tf.layers.conv2dTranspose({filters: 1, kernelSize: 3}), // Output: 28x28
 	]
 	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), tf)
 
