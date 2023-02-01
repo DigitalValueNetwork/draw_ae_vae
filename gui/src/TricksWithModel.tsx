@@ -4,8 +4,13 @@ import * as tf from "@tensorflow/tfjs"
 import {GenerateImage, latentDim} from "./GenerateImage"
 import {range} from "radash"
 
-const comeUpWithDefault = () => 
-	JSON.stringify([...range(1, 5)].map(() => [...range(1, latentDim)].map(() => Math.round(Math.random() * 1000) / 1000)))
+const scales = [
+	0, 0, 1.3707246780395508, 1.7865811586380005, 2.6706178188323975, 1.8973675966262817, 0, 2.3221395015716553, 0, 2.366811990737915, 2.2038114070892334, 2.3543779850006104, 2.6084847450256348,
+	1.95780611038208, 0, 2.3057286739349365,
+]
+
+const comeUpWithDefault = () => JSON.stringify([...range(1, 5)].map(() => [...range(1, latentDim)].map((_, i) => Math.round(Math.sin(Math.random() * 3.14/2) * scales[i] * 1000) / 1000)))
+
 
 export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const [textArray, setTextArray] = useState<string>(comeUpWithDefault())
