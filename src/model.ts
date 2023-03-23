@@ -93,7 +93,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
-		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim * originalDim)
+		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim * originalDim) // shape: 1, not [1] (?)
 
 		// binaryCrossEntropy can be used as an alternative loss function
 		// const reconstructionLoss =
