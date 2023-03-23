@@ -2,9 +2,11 @@ import jimp from "jimp"
 
 export type IImgProps = {imageHeight: number; imageWidth: number; channels: number}
 
+const arrayMap = (length: number, d: (i: number) => number) => Array.from({length}, (_, i) => d(i))
+
 /** Produce RGB values from row and columns. Depending on the number of source image channels, this might be separate values or just the same grayscale image. */
 const readSrcValues = (row: number, col: number, imageData: Float32Array, {imageWidth, channels}: IImgProps) =>
-	channels === 1 ? new Array(3).map(() => imageData[row * imageWidth + col]) : new Array(3).map((_, i) => imageData[channels * (row * imageWidth + (col + i))])
+	channels === 1 ? arrayMap(3, () => imageData[row * imageWidth + col]) : arrayMap(3, i => imageData[i + channels * (row * imageWidth + col)])
 
 /**
  * Convert an image represented as a typed array, with 1 channel, to a JIMP RGB image.
