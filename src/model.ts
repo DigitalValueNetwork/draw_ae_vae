@@ -88,8 +88,8 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 		const originalDim = inputs.shape[1] ?? -1
 		// Outputs: [decoderOutput, zMean, zLogDev, latent] - see above
 		const decoderOutput = outputs[0] // outputs[1] is the latent vector
-		const zMean = outputs[1]
-		const zLogVar = outputs[2]
+		const zMean = outputs[1]   // shape: [batch, 3]
+		const zLogVar = outputs[2] // shape: [batch]
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
