@@ -4,12 +4,12 @@ import * as tf from "@tensorflow/tfjs"
 import {GenerateImage, latentDim} from "./GenerateImage"
 import {range} from "radash"
 
+/** Scale of the latent vectors, from -1 to 1 */
 const scales = [
-	0, 0, 1.3707246780395508, 1.7865811586380005, 2.6706178188323975, 1.8973675966262817, 0, 2.3221395015716553, 0, 2.366811990737915, 2.2038114070892334, 2.3543779850006104, 2.6084847450256348,
-	1.95780611038208, 0, 2.3057286739349365,
+	2, 2, 2
 ]
 
-const comeUpWithDefault = () => JSON.stringify([...range(1, 5)].map(() => [...range(1, latentDim)].map((_, i) => Math.round(Math.sin(Math.random() * 3.14/2) * scales[i] * 1000) / 1000)))
+const comeUpWithDefault = () => JSON.stringify([...range(1, 7)].map(() => [...range(1, latentDim)].map((_, i) => -scales[i] + 2 * Math.round(Math.sin(Math.random() * 3.14/2) * scales[i] * 1000) / 1000)))
 
 const interpolate = (vectorA: number[], vectorB: number[], value: number) => [[vectorA, vectorB].map(v => tf.tensor(v, [1, latentDim]))].map(([a, b]) => a.add(b.sub(a).mul(value)))[0]
 
@@ -53,13 +53,17 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 		e.preventDefault()
 	}
 
+	const regenerate = () => {
+		setTextArray(comeUpWithDefault())
+	} 
+
 	const requestRef = useRef()
 
 	React.useEffect(() => {
 		const animate =
 			(start: number, stop: number, current = 0) =>
 			() => {
-				const newCurrent = Math.min(stop, current + (stop - start) / 100)
+				const newCurrent = Math.min(stop, current + (stop - start) / 200)
 				setAnimationIndex(newCurrent) // Another (better) way to do this is to pass a function here - it will receive a callback with the current state, which can then be updated.  https://css-tricks.com/using-requestanimationframe-with-react-hooks/
 
 				requestRef.current = requestAnimationFrame(animate(start, stop, newCurrent)) as any
@@ -82,6 +86,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 					{validArray && <input type="submit" value="Try it!" />}
 				</div>
 			</form>
+			<button onClick={regenerate}>Generate Latency Vectors</button>
 			<p>
 				Animation Index: <span style={{width: "31px", display: "inline-block", textAlign: "end"}}>{(Math.round(animationIndex * 100) / 100).toPrecision(3)}</span>
 			</p>
