@@ -2,7 +2,7 @@
 import {ITensorflow, LayersModel, SymbolicTensor, Tensor} from "./tensorflowLoader"
 import {createZLayerClass} from "./ZLayer.js"
 
-export const imageDim = [28, 28, 1] as const
+// export const imageDim = [28, 28, 1] as const
 /** Width of the encoder output */
 export const latentDim = 3
 
@@ -24,7 +24,7 @@ const chainSequentialLayers = (layers: (ILayerData | ILayerData[])[], seed?: ILa
 
 const wrapInModel = (inputs: SymbolicTensor, outputs: ILayer | ILayer[], name: string, tf: ITensorflow) => tf.model({inputs, outputs: <any>outputs, name})
 
-export const setupEncoder = (tf: ITensorflow) => {
+export const setupEncoder = (tf: ITensorflow, imageDim: readonly [number, number, number]) => {
 	const ZLayer = createZLayerClass(tf)
 
 	const encoderLayers: ILayerData[] = [
@@ -48,12 +48,13 @@ export const setupEncoder = (tf: ITensorflow) => {
 
 export const setupDecoder = (tf: ITensorflow) => {
 	const decoderLayers: ILayerData[] = [
+		// Todo: create one of 28x28x1 and one for 128x128x3
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({units: 11 * 11 * 13, activation: "relu"}),
-		tf.layers.reshape({targetShape: [11, 11, 13]}),
-		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 13x13
-		tf.layers.upSampling2d({}), // Output: 26x26  - We don't have to do this, could just widen the convolution with wide filters
-		tf.layers.conv2dTranspose({filters: 1, kernelSize: 3}), // Output: 28x28
+		tf.layers.dense({units: 61 * 61 * 13, activation: "relu"}),
+		tf.layers.reshape({targetShape: [61, 61, 13]}),
+		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 63x63
+		tf.layers.upSampling2d({}), // Output: 126x126  - We don't have to do this, could just widen the convolution with wide filters
+		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3}), // Output: 128x128x3
 	]
 	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), "decoder", tf)
 
