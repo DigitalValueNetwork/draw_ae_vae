@@ -1,12 +1,14 @@
 import meow from "meow"
 // import tfMain from "@tensorflow/tfjs-node"
 // import tfGpu from "@tensorflow/tfjs-node-gpu"
-import {loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImagesFilePath} from "./mnist-loading/data.js"
+// import {loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImagesFilePath} from "./mnist-loading/data.js"
+import {loadSeparateImages as loadImages, imageProps as srcImageProps, imagesFilePath as srcImagesFilePath} from "./individual-image-loading/data.js"
 import {renderImageForTerminalPreview} from "./image/terminalImage.js"
 import {train} from "./train.js"
 import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
 import {saveModel} from "./persistence/saveModel.js"
 import { loadTfjsGpu, loadTfjsNode } from "./tensorflowLoader.js"
+import { repeat } from "rxjs"
 
 const cli = meow(
 	`
@@ -84,17 +86,17 @@ if (cli.flags.outputDataset) {
 	const tensorflowPromise = cli.flags.useGpu ? loadTfjsGpu() : loadTfjsNode()
 
 	tensorflowPromise.then(tensorflow =>
-		loadImages(mnistImagesFilePath, tensorflow.util as any)
+		loadImages(srcImagesFilePath, tensorflow.util as any, tensorflow as any)
 			.then(async images => {
-				console.log(await renderImageForTerminalPreview(images[5], mnistImageProps))
+				console.log(await renderImageForTerminalPreview(images[5], srcImageProps))
 				// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
 				// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
 
 				const model = await train(
-					imageChunkToFlat(imageChunks(images, cli.flags.batchSize)),
+					imageChunkToFlat(imageChunks(images, cli.flags.batchSize).pipe(repeat())),
 					cli.flags.epochs,
 					async tensor => {
-						console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, mnistImageProps))
+						console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, srcImageProps))
 					},
 					tensorflow as any
 				)
