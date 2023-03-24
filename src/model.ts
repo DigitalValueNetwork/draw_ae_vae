@@ -91,9 +91,19 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 		const zMean = outputs[1]   // shape: [batch, 3]
 		const zLogVar = outputs[2] // shape: [batch]
 
+		// PROBLEM:
+		//  After the first iteration, all the output values turns NaN.
+		//      * What is the the value of klLoss ?
+		//          * klLoss sometimes hold very high values, from very high random values.  What is the values during mnist?
+		//      * What happens in the ZLayer - any adjustments needed for more channels?
+		//      * Why is mean squaredError so high?  Should it not be a mean? Re-iterate on this concept and check the values again. Maybe the output's are forced out of alignment.
+		//         * When trying again - the reconstructionLoss vas 24000 - which makes perfect sense - with random outputs around 0, and inputs around 128-255
+		// There might be an issue in the zMean and zLogVar - and further investigation into how these works - might be needed.
+		// It's also a mystery - that the values of the output are forced to NaN - what gradients are doing that.
+
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
-		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim * originalDim) // shape: 1, not [1] (?)
+		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput) // .mul(originalDim * originalDim) // shape: 1, not [1] (?)
 
 		// binaryCrossEntropy can be used as an alternative loss function
 		// const reconstructionLoss =
