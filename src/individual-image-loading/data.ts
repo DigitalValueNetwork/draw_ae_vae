@@ -19,7 +19,7 @@ const loadIndividualImages = async (imgPath: string, _util: any, tf: ITensorflow
 		const imageBuffer = await readFile(file)
 		const tensor = <Tensor3D>tf.node.decodeImage(imageBuffer)
 		// Return the image is Float32Array, even if it's already a nice tensor.  This is to keep the API similar to the mnist-example. Consider converting that to using tensors.
-		images.push(tensor.dataSync() as Float32Array)
+		images.push(tensor.div(tf.tensor1d([255])).dataSync() as Float32Array)
 	}
 	return images
 }

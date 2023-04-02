@@ -24,7 +24,7 @@ async function arrayToJimp(imageData: Float32Array, {imageHeight, imageWidth, ch
 		for (let j = 0; j < imageWidth; ++j) {
 			// const inIndex = (i * imageWidth + j);
 			const pixelValues = readSrcValues(i, j, imageData, {imageWidth, channels} as any) // imageData[inIndex] * 255;
-			for (const pixelValue of pixelValues) buffer.set([Math.floor(pixelValue)], index++)
+			for (const pixelValue of pixelValues) buffer.set([Math.floor(pixelValue * 255)], index++)
 			// Alpha:
 			buffer.set([255], index++)
 		}
