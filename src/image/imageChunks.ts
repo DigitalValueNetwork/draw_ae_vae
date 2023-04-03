@@ -1,11 +1,12 @@
-import {asyncScheduler, bufferCount, from, map, Observable, repeat, subscribeOn} from "rxjs"
+import {asyncScheduler, bufferCount, from, map, Observable, repeat, subscribeOn, take} from "rxjs"
 
 export const imageChunks = (images: Float32Array[], batchSize: number) => {
 	return from(images).pipe(
 		map(image => [...image]),
 		subscribeOn(asyncScheduler),
 		repeat(),
-		bufferCount(batchSize)
+		bufferCount(batchSize),
+		take(Math.round(10000 / batchSize))
 	)
 }
 
