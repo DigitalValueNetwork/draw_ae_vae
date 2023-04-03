@@ -9,8 +9,8 @@ export const imageChunks = (images: Float32Array[], batchSize: number) => {
 	)
 }
 
-export const imageChunkToFlat = (chunks: Observable<number[][]>, ) =>
+export const imageChunkToFlat = (chunks: Observable<number[][]>) =>
 	chunks.pipe(
-		map(chunk => ({buffer: chunk.flat(), length: chunk.length})), // .reduce((x, y) => [...x, ...y])),
+		map(chunk => ({buffer: chunk.flat(), length: chunk.length})) // .reduce((x, y) => [...x, ...y])),
 		// map(flatChunk => tf.tensor3d(flatChunk))
 	)
