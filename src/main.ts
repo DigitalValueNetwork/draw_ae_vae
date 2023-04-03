@@ -8,7 +8,6 @@ import {train} from "./train.js"
 import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
 import {saveModel} from "./persistence/saveModel.js"
 import {loadTfjsGpu, loadTfjsNode} from "./tensorflowLoader.js"
-import {asyncScheduler, repeat, subscribeOn} from "rxjs"
 
 const cli = meow(
 	`
@@ -96,7 +95,7 @@ if (cli.flags.outputDataset) {
 					// This crashes with RangeError: Maximum call stack... https://github.com/ReactiveX/rxjs/issues/651#issuecomment-153944205
 					// When using a synchronous source with repeat, it will use recursion to trigger the new iterations, which will break.
 					//   The solution is to use a subscribeOn with the asyncScheduler.
-					imageChunkToFlat(imageChunks(images, cli.flags.batchSize).pipe(subscribeOn(asyncScheduler), repeat())),
+					imageChunkToFlat(imageChunks(images, cli.flags.batchSize)),
 					cli.flags.epochs,
 					async tensor => {
 						console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, srcImageProps))
