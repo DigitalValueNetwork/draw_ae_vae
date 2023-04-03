@@ -7,8 +7,8 @@ import {renderImageForTerminalPreview} from "./image/terminalImage.js"
 import {train} from "./train.js"
 import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
 import {saveModel} from "./persistence/saveModel.js"
-import { loadTfjsGpu, loadTfjsNode } from "./tensorflowLoader.js"
-import { repeat } from "rxjs"
+import {loadTfjsGpu, loadTfjsNode} from "./tensorflowLoader.js"
+import {asyncScheduler, repeat, subscribeOn} from "rxjs"
 
 const cli = meow(
 	`
@@ -28,7 +28,7 @@ Usage:
 		flags: {
 			/* had to use lowercase for some reason */
 			useGpu: {
-				type: "boolean",				
+				type: "boolean",
 				default: false,
 			},
 			outputDataset: {
@@ -93,7 +93,10 @@ if (cli.flags.outputDataset) {
 				// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
 
 				const model = await train(
-					imageChunkToFlat(imageChunks(images, cli.flags.batchSize).pipe(repeat())),
+					// This crashes with RangeError: Maximum call stack... https://github.com/ReactiveX/rxjs/issues/651#issuecomment-153944205
+					// When using a synchronous source with repeat, it will use recursion to trigger the new iterations, which will break.
+					//   The solution is to use a subscribeOn with the asyncScheduler.
+					imageChunkToFlat(imageChunks(images, cli.flags.batchSize).pipe(subscribeOn(asyncScheduler), repeat())),
 					cli.flags.epochs,
 					async tensor => {
 						console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, srcImageProps))
