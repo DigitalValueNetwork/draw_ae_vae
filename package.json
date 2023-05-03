@@ -8,12 +8,14 @@
   "license": "MIT",
   "scripts": {
     "downloadMnist": "node --loader ts-node/esm.mjs --experimental-json-modules src/mnist-loading/download.ts",
+    "fashionExtract": "node --loader ts-node/esm.mjs --experimental-json-modules src/fashion-set-extract-zip/extract.ts",
     "train": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts",
     "outputDataset": "node --loader ts-node/esm.mjs --experimental-json-modules src/main.ts --outputDataset"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.1.0",
     "@tensorflow/tfjs-node-gpu": "^4.1.0",
+    "csv-parse": "^5.3.9",
     "glob": "^9.2.1",
     "jimp": "^0.16.2",
     "meow": "^11.0.0",

@@ -8,6 +8,10 @@ Motivation: build logic for analyzing and reconstructing images.  Learn to work 
 ```bash
 yarn run train
 ```
+## Extract Kaggle Fashion Data
+```
+yarn run --silent fashionExtract ~/Downloads/fashion-extractor somewhere/KaggleDatasets/fashion.zip > output/extractScript.sh
+```
 
 ## Lessons learned
 

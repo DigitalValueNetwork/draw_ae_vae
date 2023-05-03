@@ -1184,6 +1184,11 @@ cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
+csv-parse@^5.3.9:
+  version "5.3.9"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-5.3.9.tgz#7af0daa161b0213080bb2cdffacd9b699cf48963"
+  integrity sha512-Nuh09OE1+wG6x5Lu2T+woxlupPAnWJ6Wj9XVYK74gP646e5gDrUsrCws1zz5NbckpQ+jygnxb8xDLj3gfBxi3w==
+
 cycled@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/cycled/-/cycled-1.2.0.tgz#dde6d9d58b0b14d02c8138c8f55be416a6595baf"

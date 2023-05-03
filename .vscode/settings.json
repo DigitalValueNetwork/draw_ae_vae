@@ -1,5 +1,6 @@
 {
 	"cSpell.words": [
+		"Bottomwear",
 		"conv",
 		"Cuda",
 		"lstm",
@@ -12,6 +13,7 @@
 		"rmsprop",
 		"Skippify",
 		"tfjs",
-		"tfvis"
+		"tfvis",
+		"Topwear"
 	]
 }
