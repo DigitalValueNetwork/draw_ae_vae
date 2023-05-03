@@ -27,11 +27,13 @@ const wrapInModel = (inputs: SymbolicTensor, outputs: ILayer | ILayer[], name: s
 export const setupEncoder = (tf: ITensorflow, imageDim: readonly [number, number, number]) => {
 	const ZLayer = createZLayerClass(tf)
 
+	// Switch to the ChatGPT suggestion - much faster to train
+
 	const encoderLayers: ILayerData[] = [
 		<any>tf.input({shape: <any>imageDim, name: "encoder_input"}),
-		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
+		tf.layers.conv2d({filters: 16, kernelSize: 3, strides: 1, activation: "relu"}),
 		tf.layers.maxPool2d({poolSize: 2}),
-		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
+		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
 		tf.layers.maxPool2d({poolSize: 2}),
 		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
 		// tf.layers.maxPool2d({poolSize: 2}),  Is this any use?  Need maxPool before flatten?
@@ -53,11 +55,11 @@ export const setupDecoder = (tf: ITensorflow) => {
 		// Todo: create one of 28x28x1 and one for 150x200
 		// https://madebyollin.github.io/convnet-calculator/
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({ units: 70 * 95 * 64, activation: "relu" }),
+		tf.layers.dense({ units: 70 * 95 * 32, activation: "relu" }), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
 		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
 		// Should merge back into loadImage branch.
-		tf.layers.reshape({targetShape: [70, 95, 64]}),
-		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 72x97
+		tf.layers.reshape({targetShape: [70, 95, 32]}),
+		tf.layers.conv2dTranspose({filters: 32, kernelSize: 3, activation: "relu"}), // Output: 72x97
 		tf.layers.upSampling2d({}), // Output: 144x194  - We don't have to do this, could just widen the convolution with wide filters
 		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 146x196
 		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3, activation: "relu"}), // Output: 148x198
