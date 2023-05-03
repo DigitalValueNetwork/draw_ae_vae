@@ -32,6 +32,8 @@ export const setupEncoder = (tf: ITensorflow, imageDim: readonly [number, number
 		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
 		tf.layers.maxPool2d({poolSize: 2}),
 		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
+		tf.layers.maxPool2d({poolSize: 2}),
+		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
 		// tf.layers.maxPool2d({poolSize: 2}),  Is this any use?  Need maxPool before flatten?
 		tf.layers.flatten({}),
 		[tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_mean"}), tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_log_var"})],
@@ -48,13 +50,18 @@ export const setupEncoder = (tf: ITensorflow, imageDim: readonly [number, number
 
 export const setupDecoder = (tf: ITensorflow) => {
 	const decoderLayers: ILayerData[] = [
-		// Todo: create one of 28x28x1 and one for 128x128x3
+		// Todo: create one of 28x28x1 and one for 150x200
+		// https://madebyollin.github.io/convnet-calculator/
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({units: 61 * 61 * 13, activation: "relu"}),
-		tf.layers.reshape({targetShape: [61, 61, 13]}),
-		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 63x63
-		tf.layers.upSampling2d({}), // Output: 126x126  - We don't have to do this, could just widen the convolution with wide filters
-		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3}), // Output: 128x128x3
+		tf.layers.dense({ units: 70 * 95 * 64, activation: "relu" }),
+		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
+		// Should merge back into loadImage branch.
+		tf.layers.reshape({targetShape: [70, 95, 64]}),
+		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 72x97
+		tf.layers.upSampling2d({}), // Output: 144x194  - We don't have to do this, could just widen the convolution with wide filters
+		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 146x196
+		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3, activation: "relu"}), // Output: 148x198
+		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3}), // Output: 150x200x3
 	]
 	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), "decoder", tf)
 

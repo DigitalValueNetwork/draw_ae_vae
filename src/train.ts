@@ -6,7 +6,7 @@ import {autoEncoderLoss, setupAutoEncoder, setupDecoder, setupEncoder} from "./m
 import {ITensorflow, Tensor} from "./tensorflowLoader.js"
 
 export const train = async (chunks: Observable<{ buffer: number[]; length: number }>, epochCount: number, imagePreview: (imageTensor: any) => Promise<void>, tf: ITensorflow) => {
-	const imageDim = [128, 128, 3] as const
+	const imageDim = [150, 200, 3] as const
 	const encoder = setupEncoder(tf, imageDim)
 	const decoder = setupDecoder(tf)
 	const autoEncoder = setupAutoEncoder(encoder, decoder, tf)
