@@ -65,7 +65,7 @@ Usage:
 			},
 			saveModelPath: {
 				type: "string",
-				default: "/tmp/draw_ae_vae",
+				default: "./output",
 			},
 			loadModelPath: {
 				type: "string",
