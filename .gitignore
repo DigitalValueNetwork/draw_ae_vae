@@ -1,6 +1,7 @@
 output/dataset.csv
 output/results.csv
 output/extractScript.sh
+output/decoder
 output/decoder/wights.bin
 output/decoder/model.json
 
