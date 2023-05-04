@@ -1,8 +1,8 @@
 output/dataset.csv
 output/results.csv
 output/extractScript.sh
-output/wights.bin
-output/model.json
+output/decoder/wights.bin
+output/decoder/model.json
 
 dataset
 
