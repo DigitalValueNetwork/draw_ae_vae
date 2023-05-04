@@ -87,7 +87,7 @@ if (cli.flags.outputDataset) {
 	tensorflowPromise.then(tensorflow =>
 		loadImages(srcImagesFilePath, tensorflow.util as any, tensorflow as any)
 			.then(async images => {
-				console.log(await renderImageForTerminalPreview(images[5], srcImageProps))
+				console.log(await renderImageForTerminalPreview(images[Math.floor(images.length * Math.random()) ], srcImageProps))
 				// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
 				// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
 
