@@ -32,21 +32,20 @@ export const setupEncoder = (tf: ITensorflow, imageDim: readonly [number, number
 	const encoderLayers: ILayerData[] = [
 		<any>tf.input({shape: <any>imageDim, name: "encoder_input"}),
 		tf.layers.conv2d({filters: 16, kernelSize: 3, strides: 1, activation: "relu"}),
-		tf.layers.maxPool2d({poolSize: 2}),
+		tf.layers.maxPooling2d({poolSize: 2}),
 		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
-		tf.layers.maxPool2d({poolSize: 2}),
+		tf.layers.maxPooling2d({poolSize: 2}),
 		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
-		// tf.layers.maxPool2d({poolSize: 2}),  Is this any use?  Need maxPool before flatten?
+		tf.layers.maxPooling2d({poolSize: 2}), //  Is this any use?  Need maxPool before flatten?    By having a last pooling, the number of weights to the latent dim is 4 times smaller. This de-smartifies the network, but perhaps not with much
 		tf.layers.flatten({}),
 		[tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_mean"}), tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_log_var"})],
-		// new ZLayer({name: "z-layer", outputShape: [latentDim]})
 	]
 
 	const [zMean, zLogVar] = chainSequentialLayers(encoderLayers) as ILayer[]
-	// const [zMean, zLogVar] = (sequence as any).sourceLayer.inboundNodes[0].inboundLayers[0]
 	const z = chainSequentialLayers([[zMean, zLogVar], new ZLayer({name: "z-layer", outputShape: [latentDim]})] as any[])
 
 	const encoder = wrapInModel(encoderLayers[0] as any, [zMean, zLogVar, z as any], "encoder", tf)
+	// encoder.summary()
 	return encoder
 }
 
@@ -55,7 +54,7 @@ export const setupDecoder = (tf: ITensorflow) => {
 		// Todo: create one of 28x28x1 and one for 150x200
 		// https://madebyollin.github.io/convnet-calculator/
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({ units: 70 * 95 * 32, activation: "relu" }), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
+		tf.layers.dense({units: 70 * 95 * 32, activation: "relu"}), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
 		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
 		// Should merge back into loadImage branch.
 		tf.layers.reshape({targetShape: [70, 95, 32]}),
@@ -82,7 +81,7 @@ export const setupAutoEncoder = (encoder: LayersModel, decoder: LayersModel, tf:
 		name: "autoEncoderModel",
 	})
 
-	v.summary()
+ 	v.summary()
 	return v
 }
 
@@ -97,7 +96,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 		const originalDim = inputs.shape[1] ?? -1
 		// Outputs: [decoderOutput, zMean, zLogDev, latent] - see above
 		const decoderOutput = outputs[0] // outputs[1] is the latent vector
-		const zMean = outputs[1]   // shape: [batch, 3]
+		const zMean = outputs[1] // shape: [batch, 3]
 		const zLogVar = outputs[2] // shape: [batch]
 
 		// PROBLEM:
