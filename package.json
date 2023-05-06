@@ -1,8 +1,8 @@
 {
-  "name": "rnn_test",
+  "name": "vae_test",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:tvedtorama/rnn_test.git",
+  "repository": "git@github.com:tvedtorama/draw_ae_vae.git",
   "type": "module",
   "author": "Jørgen Tvedt <tvedtorama@gmail.com>",
   "license": "MIT",
