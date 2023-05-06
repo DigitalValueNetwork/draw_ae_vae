@@ -6,7 +6,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 import { TricksWithModel } from './TricksWithModel';
 
-const decoderUrl = "./decoderModel.json"
+const decoderUrl = "./decoderModel-rgb.json"
 
 async function loadModel(modelUrl: string) {
   const decoder = await tf.loadLayersModel(modelUrl);
