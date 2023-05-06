@@ -58,7 +58,7 @@ export const setupDecoder = (tf: ITensorflow) => {
 		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
 		// Should merge back into loadImage branch.
 		tf.layers.reshape({targetShape: [33, 46, 64]}),
-		tf.layers.conv2dTranspose({filters: 128, kernelSize: 3, activation: "relu"}), // Output: 35x48
+		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 35x48
 		tf.layers.upSampling2d({}), // Output: 70x96
 		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 72x98
 		tf.layers.upSampling2d({}), // Output: 144x196
