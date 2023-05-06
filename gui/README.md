@@ -6,7 +6,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 Run the training in the main project, with `yarn train` then put the resulting stored model into: `./public` as `generatorModel.json` and `weights.bin`.
 
-The RGB model should be stored as `generatorModel-rgb.json` and `weights-rgb.bin`
+The RGB model should be stored as `generatorModel-rgb.json` and `weights-rgb.bin`.  NB: edit the json to get the correct link to the bin file. (rather: fix the output so it generates the right names).
 
 ## Available Scripts
 
