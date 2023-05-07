@@ -119,7 +119,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
-		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(100) // .mul(originalDim * originalDim) // shape: 1, not [1] (?)
+		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim)
 
 		// binaryCrossEntropy can be used as an alternative loss function
 		// const reconstructionLoss =
@@ -128,8 +128,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 		// Next we compute the KL-divergence between zLogVar and zMean, minimizing
 		// this term aims to make the distribution of latent variable more normally
 		// distributed around the center of the latent space.
-		let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp()).sum(-1).mul(-0.5)
-
+		const klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp()).sum(-1).mul(-0.5)
 		return reconstructionLoss.add(klLoss).mean()
 	})
 }
