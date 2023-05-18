@@ -3,7 +3,7 @@ import tf from "@tensorflow/tfjs-node"
 // Test in repl:
 // node --loader ts-node/esm.mjs
 // # await import("./src/linearExample.ts")
-// # z.getExampleTensor(5)
+// # z.getExampleTensors(5)
 
 const a = 10
 const b = 0.5
@@ -17,10 +17,10 @@ export const getExampleValues = (count: number) =>
 		.map(r => r * 100)
 		.map(x => ({x, target: theFunction(x)}))
 
-/** Convert the  */
+/** Create example values, produce a tensor, then split it into values and targets. */
 export const getExampleTensors = (count: number) =>
 	tf.tensor2d(getExampleValues(count).map(({ x, target }) => [x, target]))
-		.split(2, 1)		
+	.split(2, 1)
 
 /** Create a one-neuron sequential model - and compile it */
 export const createModel = () => {
@@ -31,14 +31,14 @@ export const createModel = () => {
 			units: 1,
 		})
 	)
-	model.compile({ loss: 'meanSquaredError', optimizer: 'adam' });
+	model.compile({loss: "meanSquaredError", optimizer: "adam"})
 	return model
 }
 
 /** Generate data and feed the model */
-export const trainModel = (model: tf.Sequential, count = 20000, epochs = 5, batchSize = 5) => {
+export const trainModel = (model: tf.Sequential, count = 20000, batchSize = 5, epochs = 5) => {
 	const [values, targets] = getExampleTensors(count)
-	return model.fit(values.reshape([count, 1]), targets.reshape([count, 1]), { epochs, batchSize })
+	return model.fit(values.reshape([count, 1]), targets.reshape([count, 1]), {batchSize, epochs})
 }
 
 /** Given a pre-trained model and a sample value, predict a value */
@@ -46,8 +46,7 @@ export const predict = (model: tf.Sequential, value: number) => {
 	return model.predict(tf.tensor2d([value], [1, 1]))
 }
 
-export const printModel = (model: tf.Sequential) => { 
+export const printModel = (model: tf.Sequential) => {
 	console.log(`bias: ${(<any>model.layers[0]).bias.val.dataSync()}`)
 	console.log(`kernel: ${(<any>model.layers[0]).kernel.val.dataSync()}`)
 }
-
