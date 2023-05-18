@@ -43,16 +43,27 @@ const subCategories: IColumns["subCategory"][] = ["Topwear", "Bottomwear"]
 
 /** Selects some entries based on the hash of the id */
 const deterministicFilter =
-	(cutChar: string) =>
-	({id}: IColumns): boolean =>
-		generateHash(id, 1) < cutChar
+	(cutChar: (x: Pick<IColumns, "gender" | "subCategory">) => string) =>
+	({id, ...rest}: IColumns): boolean =>
+		generateHash(id, 1) < cutChar(rest)
 
+
+/** Skew selection.  The characters are ordered like this "-", ["0" - "9"], ["A", "Z"], ... */
+const filterWeights = ({ gender, subCategory }: Pick<IColumns, "gender" | "subCategory">) =>
+	subCategory === "Bottomwear" && gender === "Men" ? "M" :
+	subCategory === "Bottomwear" ? "b" :
+	gender === "Men" ? "4" :
+			"7"
+		
+
+/** Content should already be shuffled */
 const loadStyles = (file: string) =>
 	loadCSV<IColumns>(file).pipe(
-		filter(({gender, subCategory}) => genders.includes(gender) && subCategories.includes(subCategory)),
-		filter(deterministicFilter("7")),
+		filter(({ gender, subCategory }) => genders.includes(gender) && subCategories.includes(subCategory)),
+		filter(({id, productDisplayName}) => !(id.includes("_x") || productDisplayName.toLowerCase().includes("pack of"))),
+		filter(deterministicFilter(filterWeights)),
 		map(generateScript),
-		take(1000)
+		take(1200)
 	)
 
 console.log(`#!/bin/bash
