@@ -17,14 +17,16 @@ const loadIndividualImages = async (imgPath: string, _util: any, tf: ITensorflow
 	const images: Float32Array[] = []
 	for await (const file of iterator) {
 		const imageBuffer = await readFile(file)
-		const tensor = <Tensor3D>tf.node.decodeImage(imageBuffer)
-		if (JSON.stringify(tensor.shape) === JSON.stringify([IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])) {
-			// Return the image is Float32Array, even if it's already a nice tensor.  This is to keep the API similar to the mnist-example. Consider converting that to using tensors.
-			images.push(tensor.div(tf.tensor1d([255])).dataSync() as Float32Array)
-		}
-		else { 
-			console.log(`Bad dimensions, ${file} - ${JSON.stringify(tensor.shape)} - skipped it`)
-		}
+		tf.tidy(() => { 
+			const tensor = <Tensor3D>tf.node.decodeImage(imageBuffer)
+			if (JSON.stringify(tensor.shape) === JSON.stringify([IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])) {
+				// Return the image is Float32Array, even if it's already a nice tensor.  This is to keep the API similar to the mnist-example. Consider converting that to using tensors.
+				images.push(tensor.div(tf.tensor1d([255])).dataSync() as Float32Array)
+			}
+			else { 
+				console.log(`Bad dimensions, ${file} - ${JSON.stringify(tensor.shape)} - skipped it`)
+			}	
+		})
 	}
 	return images
 }
