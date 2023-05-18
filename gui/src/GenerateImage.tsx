@@ -2,14 +2,15 @@ import React, {useEffect, useRef, useState} from "react"
 
 import * as tf from "@tensorflow/tfjs"
 
-const IMAGE_HEIGHT = 28
-const IMAGE_WIDTH = 28
-const IMAGE_CHANNELS = 1
-export const latentDim = 3
+const IMAGE_HEIGHT = 200
+const IMAGE_WIDTH = 150
+const IMAGE_CHANNELS = 3
+export const latentDim = 5
 
+/** Pass the latent space vector, in the form of a tensor, through the decoder - and generate the image */
 const decodeLatentSpaceTensor = (decoder: tf.LayersModel, inputTensor: tf.Tensor) => {
 	return tf.tidy(() => {
-		const res = (decoder.predict(inputTensor) as tf.Tensor).maximum(tf.scalar(0)).minimum(tf.scalar(1)) // .mul(255).cast("int32")
+		const res = (decoder.predict(inputTensor) as tf.Tensor).maximum(tf.scalar(0)).minimum(tf.scalar(1))
 		const reshaped = res.reshape([inputTensor.shape[0], IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
 		return reshaped
 	})
@@ -34,7 +35,7 @@ export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; late
 
 	return (
 		<div>
-			<canvas width={50} height={50} ref={canvasRef} />
+			<canvas width={IMAGE_WIDTH * 2} height={IMAGE_HEIGHT * 2} ref={canvasRef} />
 		</div>
 	)
 }

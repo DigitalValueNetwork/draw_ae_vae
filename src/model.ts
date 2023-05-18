@@ -4,7 +4,7 @@ import {createZLayerClass} from "./ZLayer.js"
 
 // export const imageDim = [28, 28, 1] as const
 /** Width of the encoder output */
-export const latentDim = 3
+export const latentDim = 5
 
 type ILayers = ITensorflow["layers"]
 type ILayer = ILayers["Layer"]
@@ -54,15 +54,24 @@ export const setupDecoder = (tf: ITensorflow) => {
 		// Todo: create one of 28x28x1 and one for 150x200
 		// https://madebyollin.github.io/convnet-calculator/
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({units: 70 * 95 * 32, activation: "relu"}), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
+		tf.layers.dense({units: 33 * 46 * 64, activation: "relu"}), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
 		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
 		// Should merge back into loadImage branch.
-		tf.layers.reshape({targetShape: [70, 95, 32]}),
-		tf.layers.conv2dTranspose({filters: 32, kernelSize: 3, activation: "relu"}), // Output: 72x97
-		tf.layers.upSampling2d({}), // Output: 144x194  - We don't have to do this, could just widen the convolution with wide filters
-		tf.layers.conv2dTranspose({filters: 13, kernelSize: 3, activation: "relu"}), // Output: 146x196
-		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3, activation: "relu"}), // Output: 148x198
-		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3}), // Output: 150x200x3
+		tf.layers.reshape({targetShape: [33, 46, 64]}),
+		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 35x48
+		tf.layers.upSampling2d({}), // Output: 70x96
+		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 72x98
+		// Add another convolution here, with padding, reduce the complexity in outer layers
+		tf.layers.upSampling2d({}), // Output: 144x196
+		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 146x198
+		tf.layers.conv2dTranspose({filters: 9, kernelSize: 3, activation: "relu"}), // Output: 148x200
+		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3}), // Output: 150x202x3
+		tf.layers.cropping2D({
+			cropping: [
+				[0, 0],
+				[1, 1],
+			],
+		}), // Adjust the y axis down again
 	]
 	const decoder = wrapInModel(decoderLayers[0] as any, chainSequentialLayers(decoderLayers), "decoder", tf)
 
@@ -81,7 +90,7 @@ export const setupAutoEncoder = (encoder: LayersModel, decoder: LayersModel, tf:
 		name: "autoEncoderModel",
 	})
 
- 	v.summary()
+	v.summary()
 	return v
 }
 
@@ -111,7 +120,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 
 		// First we compute a 'reconstruction loss' terms. The goal of minimizing
 		// this term is to make the model outputs match the input data.
-		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(100) // .mul(originalDim * originalDim) // shape: 1, not [1] (?)
+		const reconstructionLoss = tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim)
 
 		// binaryCrossEntropy can be used as an alternative loss function
 		// const reconstructionLoss =
@@ -120,8 +129,7 @@ export function autoEncoderLoss(inputs: Tensor, outputs: Tensor[], tf: ITensorfl
 		// Next we compute the KL-divergence between zLogVar and zMean, minimizing
 		// this term aims to make the distribution of latent variable more normally
 		// distributed around the center of the latent space.
-		let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp()).sum(-1).mul(-0.5)
-
+		const klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp()).sum(-1).mul(-0.5)
 		return reconstructionLoss.add(klLoss).mean()
 	})
 }
