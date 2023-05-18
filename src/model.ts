@@ -61,6 +61,7 @@ export const setupDecoder = (tf: ITensorflow) => {
 		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 35x48
 		tf.layers.upSampling2d({}), // Output: 70x96
 		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 72x98
+		// Add another convolution here, with padding, reduce the complexity in outer layers
 		tf.layers.upSampling2d({}), // Output: 144x196
 		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 146x198
 		tf.layers.conv2dTranspose({filters: 9, kernelSize: 3, activation: "relu"}), // Output: 148x200
