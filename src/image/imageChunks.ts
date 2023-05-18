@@ -1,12 +1,23 @@
-import {asyncScheduler, bufferCount, from, map, Observable, repeat, subscribeOn, take} from "rxjs"
+import {asyncScheduler, bufferCount, flatMap, from, map, mergeMap, Observable, repeat, subscribeOn, take} from "rxjs"
 
-export const imageChunks = (images: Float32Array[], batchSize: number) => {
-	return from(images).pipe(
-		map(image => [...image]),
+export const shuffleIndices = (length: number) => {
+	const indices = Array.from({ length }).map((_, i) => i)
+	for (const { currentIndex, randomIndex } of Array.from({ length }).map((_, i) => ({ currentIndex: length - (i + 1), randomIndex: Math.floor(Math.random() * (length - i))}))) {
+		[indices[randomIndex], indices[currentIndex]] = [indices[currentIndex], indices[randomIndex]]
+	}
+	return indices
+}
+
+
+export const imageChunks = (images: Float32Array[], batchSize: number, count = 2000) => {
+	const arrayImages = images.map(image => [...image])
+	return from([true]).pipe(
+		mergeMap(() => from(shuffleIndices(arrayImages.length))),
+		map((idx) => arrayImages[idx]),
 		subscribeOn(asyncScheduler),
 		repeat(),
 		bufferCount(batchSize),
-		take(Math.round(10000 / batchSize))
+		take(Math.round(count / batchSize))
 	)
 }
 
