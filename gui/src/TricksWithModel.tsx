@@ -6,10 +6,10 @@ import {range} from "radash"
 
 /** Scale of the latent vectors, from -1 to 1 */
 const scales = [
-	2, 2, 2
+	1, 1, 1, 1, 1
 ]
 
-const comeUpWithDefault = () => JSON.stringify([...range(1, 7)].map(() => [...range(1, latentDim)].map((_, i) => -scales[i] + 2 * Math.round(Math.sin(Math.random() * 3.14/2) * scales[i] * 1000) / 1000)))
+const comeUpWithDefault = () => JSON.stringify([...range(1, 20)].map(() => [...range(1, latentDim)].map((_, i) => -scales[i] + 2 * Math.round(Math.sin(Math.random() * 3.14/2) * scales[i] * 1000) / 1000))).replace(/(0{4,20}\d)|(9{4,20}\d)/g, "")
 
 const interpolate = (vectorA: number[], vectorB: number[], value: number) => [[vectorA, vectorB].map(v => tf.tensor(v, [1, latentDim]))].map(([a, b]) => a.add(b.sub(a).mul(value)))[0]
 
@@ -60,10 +60,12 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const requestRef = useRef()
 
 	React.useEffect(() => {
+		let startTime = +new Date()
 		const animate =
 			(start: number, stop: number, current = 0) =>
-			() => {
-				const newCurrent = Math.min(stop, current + (stop - start) / 200)
+				() => {
+				const passedTime = +new Date() - startTime
+				const newCurrent = Math.min(stop, start + passedTime / 2000) // Math.min(stop, current + (stop - start) / 200)
 				setAnimationIndex(newCurrent) // Another (better) way to do this is to pass a function here - it will receive a callback with the current state, which can then be updated.  https://css-tricks.com/using-requestanimationframe-with-react-hooks/
 
 				requestRef.current = requestAnimationFrame(animate(start, stop, newCurrent)) as any
@@ -79,14 +81,14 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 
 	return (
 		<div style={{display: "flex", flexDirection: "column"}}>
-			Model is now loaded!
+			<b>Model is loaded.</b>
 			<form onSubmit={handleSubmit} style={{width: "250px"}}>
 				<div style={{display: "flex", flexDirection: "column"}}>
 					<input type="text" value={textArray} onChange={textChange} />
-					{validArray && <input type="submit" value="Try it!" />}
+					{validArray && <input type="submit" value="Start latent animation" />}
 				</div>
 			</form>
-			<button onClick={regenerate}>Generate Latency Vectors</button>
+			<button onClick={regenerate}>Generate Latent Vectors</button>
 			<p>
 				Animation Index: <span style={{width: "31px", display: "inline-block", textAlign: "end"}}>{(Math.round(animationIndex * 100) / 100).toPrecision(3)}</span>
 			</p>
