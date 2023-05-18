@@ -17,7 +17,7 @@ export const train = async (chunks: Observable<{ buffer: number[]; length: numbe
 		console.log("\n" + `Epoch: ${epoch} of ${epochCount}`)
 		const lastLatentSpaceVectors = await lastValueFrom(
 			chunks.pipe(
-				filter(() => 5 / 6 < Math.random()),
+				// filter(() => 5 / 6 < Math.random()),
 				map(({buffer, length}, idx) => ({tensor: tf.tensor4d(buffer, [length, ...imageDim]), idx})),
 				map(({tensor, idx}) => {
 					let latentSpaceVectors: number[][] = <any>null // Trying to store a tensor here will fail, it will be disposed
