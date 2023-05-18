@@ -54,22 +54,21 @@ export const setupDecoder = (tf: ITensorflow) => {
 		// Todo: create one of 28x28x1 and one for 150x200
 		// https://madebyollin.github.io/convnet-calculator/
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({units: 33 * 46 * 64, activation: "relu"}), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
+		tf.layers.dense({units: 38 * 50 * 128, activation: "relu"}), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
 		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
 		// Should merge back into loadImage branch.
-		tf.layers.reshape({targetShape: [33, 46, 64]}),
-		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 35x48
-		tf.layers.upSampling2d({}), // Output: 70x96
-		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 72x98
-		// Add another convolution here, with padding, reduce the complexity in outer layers
-		tf.layers.upSampling2d({}), // Output: 144x196
-		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu"}), // Output: 146x198
-		tf.layers.conv2dTranspose({filters: 9, kernelSize: 3, activation: "relu"}), // Output: 148x200
-		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3}), // Output: 150x202x3
+		tf.layers.reshape({targetShape: [38, 50, 128]}),
+		tf.layers.conv2dTranspose({ filters: 64, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
+		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
+		tf.layers.upSampling2d({}), // Output: 76x100
+		tf.layers.conv2dTranspose({filters: 32, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
+		tf.layers.conv2dTranspose({filters: 32, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
+		tf.layers.upSampling2d({}), // Output: 152x200
+		tf.layers.conv2dTranspose({filters: 3, kernelSize: 3, padding: "same"}), // Output: same
 		tf.layers.cropping2D({
 			cropping: [
-				[0, 0],
 				[1, 1],
+				[0, 0],
 			],
 		}), // Adjust the y axis down again
 	]
