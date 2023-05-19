@@ -36,7 +36,10 @@ export const setupEncoder = (tf: ITensorflow, imageDim: readonly [number, number
 		tf.layers.conv2d({filters: 32, kernelSize: 3, strides: 1, activation: "relu"}),
 		tf.layers.maxPooling2d({poolSize: 2}),
 		tf.layers.conv2d({filters: 64, kernelSize: 3, strides: 1, activation: "relu"}),
-		tf.layers.maxPooling2d({poolSize: 2}), //  Is this any use?  Need maxPool before flatten?    By having a last pooling, the number of weights to the latent dim is 4 times smaller. This de-smartifies the network, but perhaps not with much
+		tf.layers.conv2d({filters: 128, kernelSize: 3, strides: 1, activation: "relu"}),
+		tf.layers.maxPooling2d({poolSize: 2}),
+		tf.layers.conv2d({filters: 128, kernelSize: 3, strides: 1, activation: "relu"}),
+		tf.layers.maxPooling2d({poolSize: 2}), //  Why maxPool before flatten: By having a last pooling, the number of weights to the latent dim is 4 times smaller. This de-smartifies the network, but perhaps not with much
 		tf.layers.flatten({}),
 		[tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_mean"}), tf.layers.dense({units: latentDim, /* activation: "relu", */ name: "z_log_var"})],
 	]
