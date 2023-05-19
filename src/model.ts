@@ -54,11 +54,11 @@ export const setupDecoder = (tf: ITensorflow) => {
 		// Todo: create one of 28x28x1 and one for 150x200
 		// https://madebyollin.github.io/convnet-calculator/
 		<any>tf.input({shape: [latentDim], name: "decoder_input"}),
-		tf.layers.dense({units: 38 * 50 * 128, activation: "relu"}), // To big, switch to chatGPT solution  (37,50,32) (No, don't think this works, but reduce the params here to reduce model size, a lot)
-		// Set this up, so that the first conv is low resolution with lots of filters, reading from the latent dim - then add resolution
-		// Should merge back into loadImage branch.
-		tf.layers.reshape({targetShape: [38, 50, 128]}),
-		tf.layers.conv2dTranspose({ filters: 64, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
+		tf.layers.dense({units: 19 * 25 * 128, activation: "relu"}),
+		tf.layers.reshape({targetShape: [19, 25, 128]}),
+		tf.layers.conv2dTranspose({filters: 256, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
+		tf.layers.upSampling2d({}), // Output: 38x50
+		tf.layers.conv2dTranspose({filters: 128, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
 		tf.layers.conv2dTranspose({filters: 64, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
 		tf.layers.upSampling2d({}), // Output: 76x100
 		tf.layers.conv2dTranspose({filters: 32, kernelSize: 3, activation: "relu", padding: "same"}), // Output: same
