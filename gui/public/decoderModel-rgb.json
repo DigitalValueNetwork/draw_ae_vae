@@ -22,7 +22,7 @@
                     "name": "dense_Dense1",
                     "class_name": "Dense",
                     "config": {
-                        "units": 97152,
+                        "units": 60800,
                         "activation": "relu",
                         "use_bias": true,
                         "kernel_initializer": {
@@ -62,9 +62,9 @@
                     "class_name": "Reshape",
                     "config": {
                         "target_shape": [
-                            33,
-                            46,
-                            64
+                            19,
+                            25,
+                            128
                         ],
                         "name": "reshape_Reshape1",
                         "trainable": true
@@ -84,7 +84,7 @@
                     "name": "conv2d_transpose_Conv2DTranspose1",
                     "class_name": "Conv2DTranspose",
                     "config": {
-                        "filters": 64,
+                        "filters": 256,
                         "kernel_initializer": {
                             "class_name": "VarianceScaling",
                             "config": {
@@ -104,7 +104,7 @@
                             1,
                             1
                         ],
-                        "padding": "valid",
+                        "padding": "same",
                         "data_format": "channels_last",
                         "activation": "relu",
                         "use_bias": true,
@@ -157,7 +157,7 @@
                     "name": "conv2d_transpose_Conv2DTranspose2",
                     "class_name": "Conv2DTranspose",
                     "config": {
-                        "filters": 64,
+                        "filters": 128,
                         "kernel_initializer": {
                             "class_name": "VarianceScaling",
                             "config": {
@@ -177,7 +177,7 @@
                             1,
                             1
                         ],
-                        "padding": "valid",
+                        "padding": "same",
                         "data_format": "channels_last",
                         "activation": "relu",
                         "use_bias": true,
@@ -195,30 +195,6 @@
                         [
                             [
                                 "up_sampling2d_UpSampling2D1",
-                                0,
-                                0,
-                                {}
-                            ]
-                        ]
-                    ]
-                },
-                {
-                    "name": "up_sampling2d_UpSampling2D2",
-                    "class_name": "UpSampling2D",
-                    "config": {
-                        "size": [
-                            2,
-                            2
-                        ],
-                        "data_format": "channels_last",
-                        "interpolation": "nearest",
-                        "name": "up_sampling2d_UpSampling2D2",
-                        "trainable": true
-                    },
-                    "inbound_nodes": [
-                        [
-                            [
-                                "conv2d_transpose_Conv2DTranspose2",
                                 0,
                                 0,
                                 {}
@@ -250,7 +226,7 @@
                             1,
                             1
                         ],
-                        "padding": "valid",
+                        "padding": "same",
                         "data_format": "channels_last",
                         "activation": "relu",
                         "use_bias": true,
@@ -267,7 +243,31 @@
                     "inbound_nodes": [
                         [
                             [
-                                "up_sampling2d_UpSampling2D2",
+                                "conv2d_transpose_Conv2DTranspose2",
+                                0,
+                                0,
+                                {}
+                            ]
+                        ]
+                    ]
+                },
+                {
+                    "name": "up_sampling2d_UpSampling2D2",
+                    "class_name": "UpSampling2D",
+                    "config": {
+                        "size": [
+                            2,
+                            2
+                        ],
+                        "data_format": "channels_last",
+                        "interpolation": "nearest",
+                        "name": "up_sampling2d_UpSampling2D2",
+                        "trainable": true
+                    },
+                    "inbound_nodes": [
+                        [
+                            [
+                                "conv2d_transpose_Conv2DTranspose3",
                                 0,
                                 0,
                                 {}
@@ -279,7 +279,7 @@
                     "name": "conv2d_transpose_Conv2DTranspose4",
                     "class_name": "Conv2DTranspose",
                     "config": {
-                        "filters": 9,
+                        "filters": 32,
                         "kernel_initializer": {
                             "class_name": "VarianceScaling",
                             "config": {
@@ -299,7 +299,7 @@
                             1,
                             1
                         ],
-                        "padding": "valid",
+                        "padding": "same",
                         "data_format": "channels_last",
                         "activation": "relu",
                         "use_bias": true,
@@ -316,7 +316,7 @@
                     "inbound_nodes": [
                         [
                             [
-                                "conv2d_transpose_Conv2DTranspose3",
+                                "up_sampling2d_UpSampling2D2",
                                 0,
                                 0,
                                 {}
@@ -328,7 +328,7 @@
                     "name": "conv2d_transpose_Conv2DTranspose5",
                     "class_name": "Conv2DTranspose",
                     "config": {
-                        "filters": 3,
+                        "filters": 32,
                         "kernel_initializer": {
                             "class_name": "VarianceScaling",
                             "config": {
@@ -348,9 +348,9 @@
                             1,
                             1
                         ],
-                        "padding": "valid",
+                        "padding": "same",
                         "data_format": "channels_last",
-                        "activation": "linear",
+                        "activation": "relu",
                         "use_bias": true,
                         "bias_initializer": {
                             "class_name": "Zeros",
@@ -374,17 +374,90 @@
                     ]
                 },
                 {
+                    "name": "up_sampling2d_UpSampling2D3",
+                    "class_name": "UpSampling2D",
+                    "config": {
+                        "size": [
+                            2,
+                            2
+                        ],
+                        "data_format": "channels_last",
+                        "interpolation": "nearest",
+                        "name": "up_sampling2d_UpSampling2D3",
+                        "trainable": true
+                    },
+                    "inbound_nodes": [
+                        [
+                            [
+                                "conv2d_transpose_Conv2DTranspose5",
+                                0,
+                                0,
+                                {}
+                            ]
+                        ]
+                    ]
+                },
+                {
+                    "name": "conv2d_transpose_Conv2DTranspose6",
+                    "class_name": "Conv2DTranspose",
+                    "config": {
+                        "filters": 3,
+                        "kernel_initializer": {
+                            "class_name": "VarianceScaling",
+                            "config": {
+                                "scale": 1,
+                                "mode": "fan_avg",
+                                "distribution": "normal",
+                                "seed": null
+                            }
+                        },
+                        "kernel_regularizer": null,
+                        "kernel_constraint": null,
+                        "kernel_size": [
+                            3,
+                            3
+                        ],
+                        "strides": [
+                            1,
+                            1
+                        ],
+                        "padding": "same",
+                        "data_format": "channels_last",
+                        "activation": "linear",
+                        "use_bias": true,
+                        "bias_initializer": {
+                            "class_name": "Zeros",
+                            "config": {}
+                        },
+                        "bias_regularizer": null,
+                        "activity_regularizer": null,
+                        "bias_constraint": null,
+                        "name": "conv2d_transpose_Conv2DTranspose6",
+                        "trainable": true
+                    },
+                    "inbound_nodes": [
+                        [
+                            [
+                                "up_sampling2d_UpSampling2D3",
+                                0,
+                                0,
+                                {}
+                            ]
+                        ]
+                    ]
+                },
+                {
                     "name": "cropping2d_Cropping2D1",
                     "class_name": "Cropping2D",
                     "config": {
                         "cropping": [
                             [
-                                0,
-                                0
-                            ],
-                            [
                                 1,
                                 1
+                            ],
+                            [
+                                0,
+                                0
                             ]
                         ],
                         "data_format": "channels_last",
@@ -394,7 +467,7 @@
                     "inbound_nodes": [
                         [
                             [
-                                "conv2d_transpose_Conv2DTranspose5",
+                                "conv2d_transpose_Conv2DTranspose6",
                                 0,
                                 0,
                                 {}
@@ -431,14 +504,14 @@
                     "name": "dense_Dense1/kernel",
                     "shape": [
                         5,
-                        97152
+                        60800
                     ],
                     "dtype": "float32"
                 },
                 {
                     "name": "dense_Dense1/bias",
                     "shape": [
-                        97152
+                        60800
                     ],
                     "dtype": "float32"
                 },
@@ -447,15 +520,15 @@
                     "shape": [
                         3,
                         3,
-                        64,
-                        64
+                        256,
+                        128
                     ],
                     "dtype": "float32"
                 },
                 {
                     "name": "conv2d_transpose_Conv2DTranspose1/bias",
                     "shape": [
-                        64
+                        256
                     ],
                     "dtype": "float32"
                 },
@@ -464,15 +537,15 @@
                     "shape": [
                         3,
                         3,
-                        64,
-                        64
+                        128,
+                        256
                     ],
                     "dtype": "float32"
                 },
                 {
                     "name": "conv2d_transpose_Conv2DTranspose2/bias",
                     "shape": [
-                        64
+                        128
                     ],
                     "dtype": "float32"
                 },
@@ -482,7 +555,7 @@
                         3,
                         3,
                         64,
-                        64
+                        128
                     ],
                     "dtype": "float32"
                 },
@@ -498,7 +571,7 @@
                     "shape": [
                         3,
                         3,
-                        9,
+                        32,
                         64
                     ],
                     "dtype": "float32"
@@ -506,7 +579,7 @@
                 {
                     "name": "conv2d_transpose_Conv2DTranspose4/bias",
                     "shape": [
-                        9
+                        32
                     ],
                     "dtype": "float32"
                 },
@@ -515,13 +588,30 @@
                     "shape": [
                         3,
                         3,
-                        3,
-                        9
+                        32,
+                        32
                     ],
                     "dtype": "float32"
                 },
                 {
                     "name": "conv2d_transpose_Conv2DTranspose5/bias",
+                    "shape": [
+                        32
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv2d_transpose_Conv2DTranspose6/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        32
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv2d_transpose_Conv2DTranspose6/bias",
                     "shape": [
                         3
                     ],
