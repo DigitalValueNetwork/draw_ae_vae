@@ -4,6 +4,7 @@ import * as tf from "@tensorflow/tfjs"
 import {GenerateImage, latentDim} from "./GenerateImage"
 import {range} from "radash"
 import {LatentVectorSliders} from "./LatentVectorSliders"
+import {setupAnimation} from "./tensorAnimation"
 
 /** Scale of the latent vectors, from -1 to 1 */
 const scales = [1, 1, 1, 1, 1]
@@ -14,18 +15,7 @@ const comeUpWithDefault = () =>
 		""
 	)
 
-const interpolate = (vectorA: number[], vectorB: number[], value: number) => [[vectorA, vectorB].map(v => tf.tensor(v, [1, latentDim]))].map(([a, b]) => a.add(b.sub(a).mul(value)))[0]
-
-const isArrayOfArrays = (arr: any[]): arr is number[][] => Array.isArray(arr[0])
-
-const s = (arr: number[][], index: number) => arr[Math.min(Math.floor(index), arr.length - 1)]
-
-const getAnimatedTensor = (fullArray: (number | number[])[], animationIndex: number) =>
-	fullArray && fullArray.length
-		? isArrayOfArrays(fullArray)
-			? interpolate(s(fullArray, animationIndex), s(fullArray, animationIndex + 1), animationIndex - Math.floor(animationIndex))
-			: tf.tensor(fullArray, [1, latentDim])
-		: null
+const {getAnimatedTensor} = setupAnimation(latentDim)
 
 export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const [textArray, setTextArray] = useState<string>(comeUpWithDefault())
