@@ -22,7 +22,7 @@ const s = (arr: number[][], index: number) => arr[Math.min(Math.floor(index), ar
 const getAnimatedTensor = (fullArray: (number | number[])[], animationIndex: number) =>
 	fullArray && fullArray.length
 		? isArrayOfArrays(fullArray)
-			? interpolate(s(fullArray, animationIndex) , s(fullArray, animationIndex + 1), animationIndex - Math.floor(animationIndex))
+			? interpolate(s(fullArray, animationIndex), s(fullArray, animationIndex + 1), animationIndex - Math.floor(animationIndex))
 			: tf.tensor(fullArray, [1, latentDim])
 		: null
 
