@@ -27,10 +27,12 @@ export const GenerateImage = ({model, latentSpace}: {model: tf.LayersModel; late
 	const canvasRef = useRef(null)
 
 	useEffect(() => {
+		tf.tidy(() => { 
 		if (imageTensor && canvasRef.current) {
 			const myTensor = imageTensor.unstack()[0].resizeBilinear([IMAGE_HEIGHT * 2, IMAGE_WIDTH * 2])
 			tf.browser.toPixels(myTensor as any, canvasRef.current)
 		}
+		})
 	}, [imageTensor])
 
 	return (
