@@ -22,6 +22,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const [validArray, setValidArray] = useState<boolean>(false)
 	const [fullArray, setFullArray] = useState<(number | number[])[]>([])
 	const [animationIndex, setAnimationIndex] = useState<number>(0)
+	const [latentOverride, setLatentOverride] = useState<number[]>([])
 
 	const textChange = (e: ChangeEvent) => {
 		const text = (e.target as any).value
@@ -37,11 +38,14 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 		}
 	}
 
-	const handleSubmit = (e: FormEvent) => {
+	const startLatentAnimation = (e: FormEvent) => {
 		const arr = JSON.parse(textArray)
 		console.log(arr)
 		// This timeout seems to be needed to have the visuals re-render
-		setTimeout(() => setFullArray(arr), 10)
+		setTimeout(() => {
+			setLatentOverride([])
+			setFullArray(arr)
+		}, 10)
 
 		e.preventDefault()
 	}
@@ -53,6 +57,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 	const requestRef = useRef()
 
 	React.useEffect(() => {
+		if (latentOverride.length) return () => {}
 		let startTime = +new Date()
 		const animate =
 			(start: number, stop: number, current = 0) =>
@@ -68,14 +73,14 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 			requestRef.current = requestAnimationFrame(animate(0, fullArray.length - 1)) as any
 			return () => cancelAnimationFrame(requestRef.current as any)
 		}
-	}, [fullArray])
+	}, [fullArray, latentOverride])
 
-	const visualArray = getAnimatedTensor(fullArray, animationIndex)
+	const visualArray = getAnimatedTensor(fullArray, animationIndex, latentOverride)
 
 	return (
 		<div style={{display: "flex", flexDirection: "column"}}>
 			<b>Model is loaded.</b>
-			<form onSubmit={handleSubmit} style={{width: "250px"}}>
+			<form onSubmit={startLatentAnimation} style={{width: "250px"}}>
 				<div style={{display: "flex", flexDirection: "column"}}>
 					<input type="text" value={textArray} onChange={textChange} />
 					{validArray && <input type="submit" value="Start latent animation" />}
@@ -85,7 +90,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 			<p>
 				Animation Index: <span style={{width: "31px", display: "inline-block", textAlign: "end"}}>{(Math.round(animationIndex * 100) / 100).toPrecision(3)}</span>
 			</p>
-			{!!visualArray && <LatentVectorSliders latentVector={visualArray} />}
+			{!!visualArray && <LatentVectorSliders latentVector={visualArray} {...{setLatentOverride}} />}
 			{!!visualArray && <GenerateImage latentSpace={visualArray} model={model} />}
 		</div>
 	)
