@@ -4,7 +4,8 @@ import * as tf from "@tensorflow/tfjs"
 import {GenerateImage, latentDim} from "./GenerateImage"
 import {range} from "radash"
 import {LatentVectorSliders} from "./LatentVectorSliders"
-import {setupAnimation} from "./tensorAnimation"
+import {setupAnimation} from "./utils/tensorAnimation"
+import {debounce} from "./utils/debounce"
 
 /** Scale of the latent vectors, from -1 to 1 */
 const scales = [1, 1, 1, 1, 1]
@@ -90,7 +91,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 			<p>
 				Animation Index: <span style={{width: "31px", display: "inline-block", textAlign: "end"}}>{(Math.round(animationIndex * 100) / 100).toPrecision(3)}</span>
 			</p>
-			{!!visualArray && <LatentVectorSliders latentVector={visualArray} {...{setLatentOverride}} />}
+			{!!visualArray && <LatentVectorSliders latentVector={visualArray} {...{setLatentOverride: debounce(setLatentOverride, 100)}} />}
 			{!!visualArray && <GenerateImage latentSpace={visualArray} model={model} />}
 		</div>
 	)
