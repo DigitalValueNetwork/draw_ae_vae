@@ -5,11 +5,13 @@ import {GenerateImage, latentDim} from "./GenerateImage"
 import {range} from "radash"
 
 /** Scale of the latent vectors, from -1 to 1 */
-const scales = [
-	1, 1, 1, 1, 1
-]
+const scales = [1, 1, 1, 1, 1]
 
-const comeUpWithDefault = () => JSON.stringify([...range(1, 20)].map(() => [...range(1, latentDim)].map((_, i) => -scales[i] + 2 * Math.round(Math.sin(Math.random() * 3.14/2) * scales[i] * 1000) / 1000))).replace(/(0{4,20}\d)|(9{4,20}\d)/g, "")
+const comeUpWithDefault = () =>
+	JSON.stringify([...range(1, 20)].map(() => [...range(1, latentDim)].map((_, i) => -scales[i] + (2 * Math.round(Math.sin((Math.random() * 3.14) / 2) * scales[i] * 1000)) / 1000))).replace(
+		/(0{4,20}\d)|(9{4,20}\d)/g,
+		""
+	)
 
 const interpolate = (vectorA: number[], vectorB: number[], value: number) => [[vectorA, vectorB].map(v => tf.tensor(v, [1, latentDim]))].map(([a, b]) => a.add(b.sub(a).mul(value)))[0]
 
