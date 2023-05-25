@@ -3,6 +3,7 @@ import React, {ChangeEvent, FormEvent, useRef, useState} from "react"
 import * as tf from "@tensorflow/tfjs"
 import {GenerateImage, latentDim} from "./GenerateImage"
 import {range} from "radash"
+import {LatentVectorSliders} from "./LatentVectorSliders"
 
 /** Scale of the latent vectors, from -1 to 1 */
 const scales = [1, 1, 1, 1, 1]
@@ -57,7 +58,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 
 	const regenerate = () => {
 		setTextArray(comeUpWithDefault())
-	} 
+	}
 
 	const requestRef = useRef()
 
@@ -65,7 +66,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 		let startTime = +new Date()
 		const animate =
 			(start: number, stop: number, current = 0) =>
-				() => {
+			() => {
 				const passedTime = +new Date() - startTime
 				const newCurrent = Math.min(stop, start + passedTime / 2000) // Math.min(stop, current + (stop - start) / 200)
 				setAnimationIndex(newCurrent) // Another (better) way to do this is to pass a function here - it will receive a callback with the current state, which can then be updated.  https://css-tricks.com/using-requestanimationframe-with-react-hooks/
@@ -94,6 +95,7 @@ export const TricksWithModel = ({model}: {model: tf.LayersModel}) => {
 			<p>
 				Animation Index: <span style={{width: "31px", display: "inline-block", textAlign: "end"}}>{(Math.round(animationIndex * 100) / 100).toPrecision(3)}</span>
 			</p>
+			{!!visualArray && <LatentVectorSliders latentVector={visualArray} />}
 			{!!visualArray && <GenerateImage latentSpace={visualArray} model={model} />}
 		</div>
 	)
