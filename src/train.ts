@@ -1,14 +1,24 @@
 import {Scalar} from "@tensorflow/tfjs-node"
 import {range} from "radash"
-import {filter, map, Observable, lastValueFrom} from "rxjs"
+import {map, Observable, lastValueFrom} from "rxjs"
 import {generateImage} from "./generate/imageGenerator.js"
-import {autoEncoderLoss, setupAutoEncoder, setupDecoder, setupEncoder} from "./model.js"
-import {ITensorflow, Tensor} from "./tensorflowLoader.js"
+import {autoEncoderLoss, setupAutoEncoder} from "./model.js"
+import {ITensorflow, Tensor, LayersModel} from "./tensorflowLoader.js"
 
-export const train = async (chunks: Observable<{ buffer: number[]; length: number }>, epochCount: number, imagePreview: (imageTensor: any) => Promise<void>, tf: ITensorflow) => {
-	const imageDim = [150, 200, 3] as const
-	const encoder = setupEncoder(tf, imageDim)
-	const decoder = setupDecoder(tf)
+export type ITrainModelSetup = {
+	encoder: LayersModel
+	decoder: LayersModel
+	imageDim: readonly [number, number, number]
+	saveModel?: (type: "decoder" | "encoder", epoch: number, model: LayersModel) => Promise<void>
+}
+
+export const train = async (
+	chunks: Observable<{buffer: number[]; length: number}>,
+	epochCount: number,
+	imagePreview: (imageTensor: any) => Promise<void>,
+	{encoder, decoder, imageDim, saveModel}: ITrainModelSetup,
+	tf: ITensorflow
+) => {
 	const autoEncoder = setupAutoEncoder(encoder, decoder, tf)
 
 	const optimizer = tf.train.adam()
@@ -39,9 +49,14 @@ export const train = async (chunks: Observable<{ buffer: number[]; length: numbe
 		)
 
 		console.log("\n")
-		await generateImage(decoder, tf.tensor([lastLatentSpaceVectors[0]]), async imageTensor => await imagePreview(Array.isArray(imageTensor) ? imageTensor[0] : imageTensor), tf).catch(err => {
+		await generateImage(decoder, tf.tensor([lastLatentSpaceVectors[0]]), imageTensor => imagePreview(Array.isArray(imageTensor) ? imageTensor[0] : imageTensor), tf).catch(err => {
 			console.log(err)
 		})
+
+		if (saveModel) {
+			await Promise.all([saveModel("encoder", epoch, encoder), saveModel("decoder", epoch, decoder)])
+		}
+
 		if (last) {
 			console.log(JSON.stringify(lastLatentSpaceVectors))
 		}

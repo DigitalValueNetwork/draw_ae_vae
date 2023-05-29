@@ -4,10 +4,11 @@ import meow from "meow"
 // import {loadImages, imageProps as mnistImageProps, imagesFilePath as mnistImagesFilePath} from "./mnist-loading/data.js"
 import {loadSeparateImages as loadImages, imageProps as srcImageProps, imagesFilePath as srcImagesFilePath} from "./individual-image-loading/data.js"
 import {renderImageForTerminalPreview} from "./image/terminalImage.js"
-import {train} from "./train.js"
+import {ITrainModelSetup, train} from "./train.js"
 import {imageChunks, imageChunkToFlat} from "./image/imageChunks.js"
 import {saveModel} from "./persistence/saveModel.js"
 import {loadTfjsGpu, loadTfjsNode} from "./tensorflowLoader.js"
+import {setupDecoder, setupEncoder} from "./model.js"
 
 const cli = meow(
 	`
@@ -77,6 +78,12 @@ Usage:
 	}
 )
 
+const saveModelSnapshot =
+	(timestamp: number): ITrainModelSetup["saveModel"] =>
+	async (type, epoch, model) => {
+		await saveModel(model, cli.flags.saveModelPath, `${type}_${timestamp}_${epoch}`)
+	}
+
 if (cli.flags.outputDataset) {
 	console.log("not implemented")
 } else {
@@ -87,9 +94,15 @@ if (cli.flags.outputDataset) {
 	tensorflowPromise.then(tensorflow =>
 		loadImages(srcImagesFilePath, tensorflow.util as any, tensorflow as any)
 			.then(async images => {
-				console.log(await renderImageForTerminalPreview(images[Math.floor(images.length * Math.random()) ], srcImageProps))
+				console.log(await renderImageForTerminalPreview(images[Math.floor(images.length * Math.random())], srcImageProps))
 				// console.log(await renderImageForTerminalPreview(images[100], mnistImageProps))
 				// console.log(await renderImageForTerminalPreview(images[150], mnistImageProps))
+
+				const imageDim = [150, 200, 3] as const
+				const encoder = setupEncoder(tensorflow as any, imageDim)
+				const decoder = setupDecoder(tensorflow as any)
+				const startTime = +new Date()
+				const modelSaver = saveModelSnapshot(startTime)
 
 				const model = await train(
 					// This crashes with RangeError: Maximum call stack... https://github.com/ReactiveX/rxjs/issues/651#issuecomment-153944205
@@ -100,6 +113,7 @@ if (cli.flags.outputDataset) {
 					async tensor => {
 						console.log(await renderImageForTerminalPreview(tensor.dataSync() as Float32Array, srcImageProps))
 					},
+					{imageDim, encoder, decoder, saveModel: modelSaver},
 					tensorflow as any
 				)
 				await saveModel(model, cli.flags.saveModelPath)
